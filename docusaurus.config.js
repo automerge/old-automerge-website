@@ -8,7 +8,7 @@ const darkCodeTheme = require('prism-react-renderer/themes/dracula');
 const config = {
     title: 'Automerge CRDT',
     tagline: 'Automerge is a library of data structures for building collaborative applications.',
-    url: 'https://automerge.github.io/',
+    url: 'https://automerge.github.io',
     baseUrl: '/',
     trailingSlash: true,
     onBrokenLinks: 'warn',
