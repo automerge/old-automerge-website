@@ -15,6 +15,7 @@ Compared to using a regular JavaScript array, `Automerge.Text` offers better per
 > cursor skips over if you press the right-arrow key once. Emoji make a good test case, since many
 > emoji consist of a sequence of several Unicode code points (for example, the
 > [skintone modifier](http://www.unicode.org/reports/tr51/) is a combining mark).
+
 You can create a Text object inside a change callback. Then you can use `insertAt()` and
 `deleteAt()` to insert and delete characters (same API as for list modifications, shown
 [above](#updating-a-document)):
