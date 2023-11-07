@@ -30,7 +30,7 @@ to be synced from one device to another, and brings them into the same state.
   kind of network you use. It works with any connection-oriented network protocol, which could be
   client/server (e.g. WebSocket), peer-to-peer (e.g. WebRTC), or entirely local (e.g. Bluetooth).
   Bindings to particular networking technologies are handled by separate libraries;
-  see the page on [real-time collaboration](/docs/cookbook/real-time/) for examples.
+  Automerge provides [automerge-repo](https://automerge.org/automerge-repo/index.html) for a common collection of these libraries.
   It also works with unidirectional messaging: you can send an Automerge file as email attachment,
   or on a USB drive in the mail, and the recipient will be able to merge it with their version.
 - **Immutable state**. An Automerge object is an immutable snapshot of the application state at one

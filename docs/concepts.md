@@ -21,9 +21,9 @@ Automerge as used in javascript applications is actually a composition of two li
 
 A document is the "unit of change" in automerge. It's like a combination of a JSON object and a git repository. What does that mean?
 
-Like a JSON object an automerge document is a map from strings to values, where the values can themselves be maps, arrays, or simple types like strings or numbers. See the [data model](./documents/) section for more details.
+Like a JSON object an automerge document is a map from strings to values, where the values can themselves be maps, arrays, or simple types like strings or numbers. See the [data model](/docs/documents/) section for more details.
 
-Like a git repository an automerge document has a history made up of commits. Every time you make a change to a document you are adding to the history of the document. The combination of this history and some rules about how to handle conflicts means that any two automerge documents can always be merged. See [merging](./merge_rules.md') for the gory details.
+Like a git repository an automerge document has a history made up of commits. Every time you make a change to a document you are adding to the history of the document. The combination of this history and some rules about how to handle conflicts means that any two automerge documents can always be merged. See [merging](/docs/under-the-hood/merge_rules.md) for the gory details.
 
 ### Repositories
 

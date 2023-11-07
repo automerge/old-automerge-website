@@ -19,7 +19,7 @@ Automerge is a type of CRDT (Conflict-Free Replicated Datatype). A CRDT is a dat
 
 Applications built with Automerge are *eventually consistent.* This means if several users are working together, they will *eventually* all see the same application state, but at any given moment it's possible for the users to be temporarily out of sync.
 
-Eventual consistency allows applications to work offline: even if a user is disconnected from the internet, Automerge allows that user to view and modify their data. If the data is shared between several users, they may all update their data independently. Later, when a network is available again, Automerge ensures that those edits are cleanly merged. See the page on [conflicts](/docs/cookbook/conflicts/) for more detail on these merges.
+Eventual consistency allows applications to work offline: even if a user is disconnected from the internet, Automerge allows that user to view and modify their data. If the data is shared between several users, they may all update their data independently. Later, when a network is available again, Automerge ensures that those edits are cleanly merged. See the page on [conflicts](/docs/documents/conflicts/) for more detail on these merges.
 
 ## Documents
 
@@ -27,7 +27,7 @@ A document is a collection of data that holds the current state of the applicati
 
 ## Types
 
-All collaborative data structures conform to certain rules. Each variable in the document must be of one of the implemented types. Each type must conform to the rules of CRDTs. Automerge comes with a set of [pre-defined types](/docs/types/values/) such as `Map`, `Array`, `Counter`, `number`, `Text`, and so on.
+All collaborative data structures conform to certain rules. Each variable in the document must be of one of the implemented types. Each type must conform to the rules of CRDTs. Automerge comes with a set of [pre-defined types](/docs/documents/values) such as `Map`, `Array`, `Counter`, `number`, `Text`, and so on.
 
 ## Changes
 

@@ -53,7 +53,7 @@ Counters are a simple CRDT which just merges by adding all concurrent operations
 
 The mapping to javascript is accomplished with the use of proxies. This means that in the javascript library maps appear as `object`s and lists appear as `Array`s. There is only one numeric type in javascript - `number` - so the javascript library guesses a bit. If you insert a javascript `number` for which [`Number.isInteger`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/isInteger) returns `true` then the number will be inserted as an integer, otherwise it will be a floating point value.
 
-How `Text` and `String` are represented will depend on whether you are using [the `next` API](/docs/working_with_js#the-next-api)
+How `Text` and `String` are represented will depend on whether you are using [the `next` API](/docs/the_js_packages#the-next-api)
 
 Timestamps are represented as javascript `Date`s.
 

@@ -3,8 +3,8 @@ sidebar_position: 1000
 ---
 # API Docs
 
-* [`@automerge/automerge`](http://automerge.org/automerge/api-docs/js)
-* [`@automerge/automerge-repo`](http://automerge.org/automerge-repo/)
+* [`@automerge/automerge`](https://automerge.org/automerge/api-docs/js)
+* [`@automerge/automerge-repo`](https://automerge.org/automerge-repo/)
 
 # Other Languages
 
