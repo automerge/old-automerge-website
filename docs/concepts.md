@@ -47,7 +47,7 @@ That is, a string of the form `automerge:<base58>`. This URL can be passed to a 
 
 ### Sync Protocol
 
-Repositories communicate with each other using an efficient sync protocol which is implmented in `automerge`. This protocol is transport agnostic and works on a per-document basis, a lot of the work `automerge-repo` does is handling running this sync protocol for multiple documents over different kinds of network.
+Repositories communicate with each other using an efficient sync protocol which is implemented in `automerge`. This protocol is transport agnostic and works on a per-document basis, a lot of the work `automerge-repo` does is handling running this sync protocol for multiple documents over different kinds of network.
 
 ### Storage Format
 
