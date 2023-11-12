@@ -20,8 +20,8 @@ The server side of the adapter is [`NodeWSServerAdapter`](https://automerge.org/
 import { WebSocketServer } from "ws"
 import { NodeWSServerAdapter } from "@automerge/automerge-repo-network-websocket"
 
-const wss = new WebSocketServer({ port: 8080 });
-const adapter = new NodeWSServerAdapter(this.#socket)
+const wss = new WebSocketServer({ port: 8080 })
+const adapter = new NodeWSServerAdapter(wss)
 ```
 
 #### Usage with `express`
@@ -34,12 +34,12 @@ import { WebSocketServer } from "ws"
 import { NodeWSServerAdapter } from "@automerge/automerge-repo-network-websocket"
 import express from "express"
 
-const wss = new WebSocketServer({ noServer: true });
+const wss = new WebSocketServer({ noServer: true })
 const server = express()
 server.on("upgrade", (request, socket, head) => {
-    wss.handleUpgrade(request, socket, head, (socket) => {
-        wss.emit("connection", socket, request)
-    })
+  wss.handleUpgrade(request, socket, head, (socket) => {
+    wss.emit("connection", socket, request)
+  })
 })
 const adapter = new NodeWSServerAdapter(wss)
 server.listen(8080)
@@ -68,10 +68,10 @@ const rightToLeft = new MessageChannelNetworkAdapter(rightToLeft)
 const leftToRight = new MessageChannelNetworkAdapter(leftToRight)
 
 const left = new Repo({
-    network: [leftToRight],
+  network: [leftToRight],
 })
 const right = new Repo({
-    network: [rightToLeft],
+  network: [rightToLeft],
 })
 ```
 

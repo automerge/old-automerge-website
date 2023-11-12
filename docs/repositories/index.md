@@ -4,7 +4,7 @@
 
 The entry point for an `automerge-repo` based application is to create a [`Repo`](https://automerge.org/automerge-repo/classes/_automerge_automerge_repo.Repo.html), passing it some form of [`StorageAdapter`](https://automerge.org/automerge-repo/classes/_automerge_automerge_repo.StorageAdapter.html) - which knows how to save data locally - and zero or more [`NetworkAdapter`](https://automerge.org/automerge-repo/classes/_automerge_automerge_repo.NetworkAdapter.html)s, which know how to talk to other peers running `automerge-repo`.
 
-For example, this snippet creates a `Repo` which listens for websocket connections and stores data in the local file system: 
+For example, this snippet creates a `Repo` which listens for websocket connections and stores data in the local file system:
 
 ```typescript
 import { Repo } from "@automerge/automerge-repo"
@@ -12,11 +12,11 @@ import { WebSocketServer } from "ws"
 import { NodeWSServerAdapter } from "@automerge/automerge-repo-network-websocket"
 import { NodeFSStorageAdapter } from "@automerge/automerge-repo-storage-nodefs"
 
-const socket = new WebSocketServer({ noServer: true })
+const wss = new WebSocketServer({ noServer: true })
 
 const repo = new Repo({
-    network: [new NodeWSServerAdapter(socket)],
-    storage: new NodeFSStorageAdapter(dir),
+  network: [new NodeWSServerAdapter(wss)],
+  storage: new NodeFSStorageAdapter(dir),
 })
 ```
 
@@ -28,8 +28,8 @@ let doc = repo.create()
 // Make a change ourselves and send that to everyone else
 doc.change(d => d.text = "hello world")
 // Listen for changes from other peers
-doc.on("change", {doc} => {
-    console.log("new text is ", doc.text)
+doc.on("change", ({ doc }) => {
+  console.log("new text is ", doc.text)
 })
 ```
 
