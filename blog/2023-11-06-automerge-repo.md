@@ -77,7 +77,7 @@ The main methods on Repo are `find(url)` and `create()`, both of which return a 
 
 ### Handle & Automerge URLs
 
-A `DocHandle` is a reference to an Automerge document that a `Repo` syncs and stores . The `Repo` instance saves any changes you make to the document and syncs with connected peers. Likewise, you can listen over the network for to a `Repo` for any changes it received.
+A `DocHandle` is a reference to an Automerge document that a `Repo` syncs and stores . The `Repo` instance saves any changes you make to the document and syncs with connected peers. Likewise, you can listen over the network to a `Repo` for any changes it received.
 
 Each `DocHandle` has a `.url` property. This is a string which uniquely identifies a document in the form `automerge:<base58 encoded bytes>`. Once you have a URL you can use it to request the document from other peers.
 
