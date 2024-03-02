@@ -74,6 +74,25 @@ const config = {
                         label: 'Docs',
                     },
                     {
+                        type: 'dropdown',
+                        label: 'API Reference',
+                        position: 'left',
+                        items: [
+                            {
+                                label: 'JavaScript',
+                                href: 'https://automerge.org/automerge/api-docs/js/',
+                            },
+                            {
+                                label: 'Rust',
+                                href: 'https://docs.rs/automerge/latest/automerge/',
+                            },
+                            {
+                                label: 'Swift',
+                                href: 'https://automerge.org/automerge-swift/documentation/automerge/',
+                            },
+                        ],
+                    },
+                    {
                         href: 'https://github.com/automerge',
                         label: 'GitHub',
                         position: 'right',
