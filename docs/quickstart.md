@@ -131,7 +131,7 @@ Calling `DocHandle.docSync()` return the current value of the document synchrono
 
 ## Updating your app to use Automerge
 
-We've already created or fetched our initial document via `main.tsx`, but usually when when we want to work with a document in a React application, we will refer to it by URL. Let's start by editing the call signature for `App.tsx` to pass in the URL for your newly created document, and then make it available to your component with the `useDocument` hook.
+We've already created or fetched our initial document via `main.tsx`, but usually when we want to work with a document in a React application, we will refer to it by URL. Let's start by editing the call signature for `App.tsx` to pass in the URL for your newly created document, and then make it available to your component with the `useDocument` hook.
 
 We also need to make the `repo` object we created available throughout the application, so we use a React Context provider for that. In `main.tsx`, modify the `React.render()` call to look like this:
 
