@@ -53,7 +53,7 @@ html[data-theme='dark'] {
 }
 
 .footer {
-	background-color: var(--ifm-navbar-background-color);
+	background-color: #222;
 }
 
 .hero .container {
