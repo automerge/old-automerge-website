@@ -2,15 +2,11 @@
 sidebar_position: 1
 ---
 
-# 5-Minute Quick Start
+# Getting started
 
-It's easy to build a local-first web application with real-time synchronization using Automerge. In this quickstart, we'll start with the standard `yarn create vite` example Typescript application and use Automerge to turn it into a simple local-first application.
+It's easy to build a local-first app with real-time synchronization using Automerge. In this guide, we'll turn a standard `yarn create vite` into a simple local-first app. All the code shown here can be found in [this repo](https://github.com/automerge/automerge-repo-quickstart).
 
-All the code here can be found at the [automerge-repo-quickstart](https://github.com/automerge/automerge-repo-quickstart) repo.
-
-Let's begin.
-
-## Setup
+## Installation
 
 First, let's initialize an off-the-shelf React app using Vite as our bundler. We're not going to remind you along the way, but we recommend you initialize a git repo and check in the code at whatever interval feels comfortable.
 
@@ -56,6 +52,44 @@ export default defineConfig({
 ```
 
 With that out of the way, we're ready to build the application.
+
+# Usage
+
+If you just want to know how to use Automerge in greenfield applications, here's how the library is intended to be used:
+
+Install both the `@automerge/automerge` and `@automerge/automerge-repo` packages. Then install the networking and storage plugins you need (typically `@automerge/automerge-repo-network-*` and `@automerge/automerge-repo-storage-*`) packages. Take a look at the cookbook for examples of different ways of using these.
+
+When you're making changes to an automerge document you should use [the `next` API](#the-next-api)
+
+### Using the next API
+
+There are two ways to use the next API
+
+#### Subpath Exports
+
+If you are either using JavaScript in a modern browser or on node > 16 then you can do the following:
+
+```javascript
+import {default as A} from "@automerge/automerge/next"
+```
+
+Note that for this to work in typescript you will need to have the following in your `tsconfig.json`
+
+```json
+    ...
+    "module": "NodeNext",
+    "moduleResolution": "Node16",
+    ...
+```
+
+#### The `{ next }` module
+
+If for whatever reason you can't use `@automerge/automerge/next` then you can do this:
+
+```javascript
+import {next as A} from "@automerge/automerge"
+```
+
 
 # Using Automerge
 
@@ -270,6 +304,13 @@ const repo = new AutomergeRepo.Repo({
 
 Documents will be stored in `IndexedDB` and methods like `Repo.find` will consult storage when loading. The upshot is that if you had a document locally, it will continue to be available regardless of whether you are connected to any peers.
 
+
+## React
+
+If you are using React, modify the above by:
+1. Choosing React as your framework during the `yarn create vite` setup
+2. Installing `@automerge/automerge-repo-react-hooks` in addition to the other packages
+3
 
 ## More
 

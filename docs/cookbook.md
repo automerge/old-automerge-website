@@ -1,12 +1,12 @@
 ---
-sidebar_position: 1
+sidebar_position: 999
 ---
 
-# Modeling Data
+# Cookbook
+
+## Modeling Data
 
 All data in Automerge must be stored in a document. A document can be modeled in a variety of ways, and there are many design patterns that can be used. An application could have many documents, typically identified by a UUID. 
-
-In this section, we will discuss how to model data within a particular document, including how to version and manage data with Automerge in production scenarios.
 
 ## How many documents?
 

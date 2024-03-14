@@ -2,7 +2,7 @@
 sidebar_position: 2
 ---
 
-# Simple Values
+# Primitives
 
 All JSON primitive datatypes are supported in an Automerge document. In addition, JavaScript [Date objects](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date) are supported.
 

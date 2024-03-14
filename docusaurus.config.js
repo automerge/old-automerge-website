@@ -47,13 +47,13 @@ const config = {
     ],
 
     stylesheets: [
-      {
-        href: 'https://cdn.jsdelivr.net/npm/katex@0.13.24/dist/katex.min.css',
-        type: 'text/css',
-        integrity:
-          'sha384-odtC+0UGzzFL/6PNoE8rX/SPcQDXBJ+uRepguP4QkPCm2LBxH3FA3y+fKSiJ+AmM',
-        crossorigin: 'anonymous',
-      },
+        {
+            href: 'https://cdn.jsdelivr.net/npm/katex@0.13.24/dist/katex.min.css',
+            type: 'text/css',
+            integrity:
+                'sha384-odtC+0UGzzFL/6PNoE8rX/SPcQDXBJ+uRepguP4QkPCm2LBxH3FA3y+fKSiJ+AmM',
+            crossorigin: 'anonymous',
+        },
     ],
 
 
@@ -69,7 +69,7 @@ const config = {
                 items: [
                     {
                         type: 'doc',
-                        docId: 'hello',
+                        docId: 'intro',
                         position: 'left',
                         label: 'Docs',
                     },
@@ -141,7 +141,7 @@ const config = {
                 copyright: `Copyright © ${new Date().getFullYear()} Automerge contributors. Built with Docusaurus.`
             },
             metadata: [
-                { name: 'title', content: 'Automerge'}, 
+                { name: 'title', content: 'Automerge' },
                 { name: 'keywords', content: 'documentation, local-first, crdt, offline-first, automerge' },
                 { name: 'description', content: 'Automerge is a library for building collaborative, local-first applications.' }
             ],
