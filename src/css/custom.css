@@ -7,18 +7,6 @@
 /* You can override the default Infima variables here. */
 
 :root {
-	--ifm-color-primary: #ba7402;
-	--ifm-color-primary-dark: #ef9603;
-	--ifm-color-primary-darker: #e28d03;
-	--ifm-color-primary-darkest: #ba7402;
-	--ifm-color-primary-light: #fcad2c;
-	--ifm-color-primary-lighter: #fdb239;
-	--ifm-color-primary-lightest: #fdc261;
-	--ifm-color-white: #fcfcfc;
-	--ifm-background-color: #fcfcfc;
-}
-
-:root[data-theme='dark'] {
 	--ifm-color-primary: #fbcc34;
 	--ifm-color-primary-dark: #fac516;
 	--ifm-color-primary-darker: #fac107;
@@ -26,6 +14,18 @@
 	--ifm-color-primary-light: #fcd352;
 	--ifm-color-primary-lighter: #fcd761;
 	--ifm-color-primary-lightest: #fde28d;
+	--ifm-color-white: #fcfcfc;
+	--ifm-background-color: #fcfcfc;
+	--ifm-color-content: #2e2e2e;
+	--ifm-menu-color: inherit;
+	--ifm-menu-color-active: inherit;
+	--ifm-menu-color-background-active: inherit;
+	--ifm-breadcrumb-color-active: var(--ifm-color-content);
+	--ifm-navbar-link-hover-color: inherit;
+}
+
+:root[data-theme="dark"] {
+	--ifm-color-content: #e3e3e3;
 }
 
 .docusaurus-highlight-code-line {
@@ -50,4 +50,41 @@ html[data-theme='dark'] .docusaurus-highlight-code-line {
 
 .footer__copyright {
 	margin-top: 3.5rem;
+}
+
+.button {
+	--ifm-button-color: black;
+}
+
+a {
+	--ifm-link-color: var(--ifm-color-content);
+	text-decoration-skip-ink: none;
+}
+
+a:hover,
+.table-of-contents__link,
+.navbar__link:hover,
+.table-of-contents__link:hover code,
+.table-of-contents__link--active code {
+	color: inherit;
+}
+
+article a {
+	--ifm-link-decoration: underline 3px solid var(--ifm-color-primary);
+	--ifm-link-hover-decoration: underline 3px solid var(--ifm-color-primary);
+}
+
+article div {
+	--ifm-menu-color-background-active: var(--ifm-background-color);
+}
+
+.menu__link--active,
+.menu__link:hover,
+.table-of-contents__link--active,
+.table-of-contents__link:hover,
+.navbar__link--active,
+.navbar__link:hover,
+.navbar__brand:hover {
+	color: inherit;
+	text-decoration: underline 3px solid var(--ifm-color-primary) !important;
 }
