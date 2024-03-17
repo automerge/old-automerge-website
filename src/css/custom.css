@@ -6,6 +6,9 @@
 
 /* You can override the default Infima variables here. */
 
+@import url('https://fonts.googleapis.com/css?family=Onest');
+@import url('https://fonts.googleapis.com/css?family=Overpass+Mono');
+
 :root {
 	--ifm-color-primary: #fbcc34;
 	--ifm-color-primary-dark: #fac516;
@@ -23,6 +26,9 @@
 	--ifm-breadcrumb-color-active: var(--ifm-color-content);
 	--ifm-navbar-link-hover-color: inherit;
 	--ifm-hero-text-color: inherit;
+	--ifm-font-family-base: Onest, sans-serif;
+	--ifm-font-family-monospace: Overpass Mono, monospace;
+	--ifm-heading-font-family: Onest, sans-serif;
 }
 
 :root[data-theme="dark"] {
