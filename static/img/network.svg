@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="100mm"
+   height="100mm"
+   viewBox="0 0 100 100"
+   version="1.1"
+   id="svg1"
+   xml:space="preserve"
+   inkscape:version="1.3 (0e150ed6c4, 2023-07-21)"
+   sodipodi:docname="network.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"><sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="mm"
+     inkscape:zoom="0.96033951"
+     inkscape:cx="141.61658"
+     inkscape:cy="213.98682"
+     inkscape:window-width="1366"
+     inkscape:window-height="715"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1" /><defs
+     id="defs1" /><g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"><circle
+       style="fill:#ffcc33;fill-opacity:1;stroke-width:30;paint-order:markers stroke fill"
+       id="path3"
+       cx="50"
+       cy="50"
+       r="34.025509" /><g
+       style="fill:#000000"
+       id="g1"
+       transform="matrix(0.22896666,0,0,0.22896666,19.47488,19.711412)"><path
+         d="m 152,128 a 24,24 0 1 1 -24,-24 24,24 0 0 1 24,24 z"
+         opacity="0.2"
+         id="path1" /><path
+         d="m 200,152 a 31.84,31.84 0 0 0 -19.53,6.68 l -23.11,-18 A 31.65,31.65 0 0 0 160,128 c 0,-0.74 0,-1.48 -0.08,-2.21 l 13.23,-4.41 A 32,32 0 1 0 168,104 c 0,0.74 0,1.48 0.08,2.21 l -13.23,4.41 A 32,32 0 0 0 128,96 32.59,32.59 0 0 0 122.73,96.44 L 115.89,81 A 32,32 0 1 0 96,88 a 32.59,32.59 0 0 0 5.27,-0.44 l 6.84,15.4 a 31.92,31.92 0 0 0 -8.57,39.64 l -25.71,22.84 a 32.06,32.06 0 1 0 10.63,12 l 25.71,-22.84 a 31.91,31.91 0 0 0 37.36,-1.24 l 23.11,18 A 31.65,31.65 0 0 0 168,184 32,32 0 1 0 200,152 Z m 0,-64 a 16,16 0 1 1 -16,16 16,16 0 0 1 16,-16 z M 80,56 A 16,16 0 1 1 96,72 16,16 0 0 1 80,56 Z M 56,208 a 16,16 0 1 1 16,-16 16,16 0 0 1 -16,16 z m 56,-80 a 16,16 0 1 1 16,16 16,16 0 0 1 -16,-16 z m 88,72 a 16,16 0 1 1 16,-16 16,16 0 0 1 -16,16 z"
+         id="path2" /></g></g></svg>

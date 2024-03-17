@@ -5,40 +5,40 @@ import styles from './HomepageFeatures.module.css';
 const FeatureList = [
   {
     title: 'Automatic merging',
-    Svg: require('../../static/img/undraw_docusaurus_tree.svg').default,
+    Svg: require('../../static/img/merge.svg').default,
     description: (
       <>
         Automerge is a Conflict-Free Replicated Data Type (CRDT), which allows
         concurrent changes on different devices to be merged automatically
-        without requiring any central server.  
-        </>
+        without requiring any central server.
+      </>
     ),
   },
   {
     title: 'Network-agnostic',
-    Svg: require('../../static/img/undraw_docusaurus_mountain.svg').default,
+    Svg: require('../../static/img/network.svg').default,
     description: (
       <>
-       Use any connection-oriented network protocol: client-server,
-       peer-to-peer, or local. Or use unidirectional messaging:
-       send an Automerge file as an email attachment or store it on a file server.
-       </>
+        Use any connection-oriented network protocol: client-server,
+        peer-to-peer, or local. Or use unidirectional messaging:
+        send an Automerge file as an email attachment or store it on a file server.
+      </>
     ),
   },
   {
     title: 'Portable',
-    Svg: require('../../static/img/undraw_docusaurus_react.svg').default,
+    Svg: require('../../static/img/portable.svg').default,
     description: (
       <>
-      Implemented in <a href="https://github.com/automerge/automerge">JavaScript</a> and <a href="https://github.com/automerge/automerge-rs">Rust</a>,
-      with FFI bindings across platforms including iOS, Electron, Chrome, Safari,
-      Edge, Firefox, and more. 
+        Implemented in <a href="https://github.com/automerge/automerge">JavaScript</a> and <a href="https://github.com/automerge/automerge-rs">Rust</a>,
+        with FFI bindings across platforms including iOS, Electron, Chrome, Safari,
+        Edge, Firefox, and more.
       </>
     ),
   },
 ];
 
-function Feature({Svg, title, description}) {
+function Feature({ Svg, title, description }) {
   return (
     <div className={clsx('col col--4')}>
       <div className="text--center">
