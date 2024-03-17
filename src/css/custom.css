@@ -53,7 +53,18 @@ html[data-theme='dark'] .docusaurus-highlight-code-line {
 }
 
 .button {
+	--ifm-button-padding-horizontal: 1rem;
+	--ifm-button-background-color: var(--ifm-color-primary);
 	--ifm-button-color: black;
+	text-transform: uppercase;
+	outline: 2px solid #242526;
+	outline-offset: -5px;
+	border-radius: 0.2rem;
+}
+
+.button:hover {
+	outline: 3px solid #242526;
+	outline-offset: -6px;
 }
 
 a {
