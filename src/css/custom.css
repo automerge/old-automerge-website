@@ -5,13 +5,6 @@
  */
 
 /* You can override the default Infima variables here. */
-p,
-li,
-ul {
-	font-family: "Merriweather", serif;
-	font-size: 1.2rem;
-	line-height: 1.7rem;
-}
 
 :root {
 	--ifm-color-primary: #ba7402;
