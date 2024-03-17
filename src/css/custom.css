@@ -22,6 +22,7 @@
 	--ifm-menu-color-background-active: inherit;
 	--ifm-breadcrumb-color-active: var(--ifm-color-content);
 	--ifm-navbar-link-hover-color: inherit;
+	--ifm-hero-text-color: inherit;
 }
 
 :root[data-theme="dark"] {
@@ -98,4 +99,19 @@ article div {
 .navbar__brand:hover {
 	color: inherit;
 	text-decoration: underline 3px solid var(--ifm-color-primary) !important;
+}
+
+.navbar__title {
+	text-transform: uppercase;
+	margin-left: 0.2rem;
+}
+
+h1,
+h2,
+h3 {
+	text-transform: uppercase;
+}
+
+.hero>.container {
+	max-width: 700px;
 }
