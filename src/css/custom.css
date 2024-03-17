@@ -25,6 +25,7 @@
 	--ifm-menu-color-background-active: inherit;
 	--ifm-breadcrumb-color-active: var(--ifm-color-content);
 	--ifm-navbar-link-hover-color: inherit;
+	--ifm-hero-background-color: #dfdfdf;
 	--ifm-hero-text-color: inherit;
 	--ifm-font-family-base: Onest, sans-serif;
 	--ifm-font-family-monospace: Overpass Mono, monospace;
@@ -33,6 +34,7 @@
 
 :root[data-theme="dark"] {
 	--ifm-color-content: #e3e3e3;
+	--ifm-hero-background-color: #2e2e2e;
 }
 
 .docusaurus-highlight-code-line {
