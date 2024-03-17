@@ -41,4 +41,13 @@ html[data-theme='dark'] .docusaurus-highlight-code-line {
 
 .footer {
 	--ifm-footer-background-color: #242526;
+	padding: 3.5rem;
+}
+
+.footer__col {
+	text-align: center;
+}
+
+.footer__copyright {
+	margin-top: 3.5rem;
 }
