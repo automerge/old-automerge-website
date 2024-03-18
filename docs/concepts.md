@@ -10,7 +10,6 @@ This documentation is mostly focused on the javascript implementation of automer
 
 :::
 
-
 ## Core concepts
 
 Using automerge means storing your data in automerge [documents](#Documents). Documents have a [URL](#Document-URLs)s which you can use to share or request documents with/from other peers using a [repository](#Repositories). Repositories give you [`DocHandle`](#dochandles)s which you use to make changes to the document and listen for changes from other peers.

@@ -1,22 +1,21 @@
-
 # Document Data Model
 
 Automerge documents are quite similar to JSON objects. A document always consists of a root map which is a map from strings to other automerge values, which can themselves be composite types.
 
 The types in automerge are:
 
-* Composite types
-    * Maps
-    * [List](lists)
-    * [Text](./text)
-* Scalar (non-composite) types:
-    * IEEE 754 64 bit floating point numbers
-    * Unsigned integers
-    * Signed integers
-    * Booleans Strings
-    * Timestamps
-    * Counters
-    * Byte arrays
+- Composite types
+  - Maps
+  - [List](lists)
+  - [Text](./text)
+- Scalar (non-composite) types:
+  - IEEE 754 64 bit floating point numbers
+  - Unsigned integers
+  - Signed integers
+  - Booleans Strings
+  - Timestamps
+  - Counters
+  - Byte arrays
 
 See [below](#javascript-language-mapping) for how these types map to JavaScript types.
 
@@ -32,10 +31,10 @@ A list is an ordered sequence of automerge values. The underlying data structure
 
 Text is an implementation of the [peritext](https://www.inkandswitch.com/peritext/) CRDT. This is conceptually similar to a [list](#lists) where each element is a single unicode scalar value representing a single character. In addition to the characters `Text` also supports "marks". Marks are tuples of the form `(start, end, name, value)` which have the following meanings:
 
-* `start` - the index of the beginning of the mark
-* `end` - the index of the end of the mark
-* `name` - the name of the mark
-* `value` - any scalar (as in automerge scalar) value
+- `start` - the index of the beginning of the mark
+- `end` - the index of the end of the mark
+- `name` - the name of the mark
+- `value` - any scalar (as in automerge scalar) value
 
 For example, a bold mark from charaters 1 to 5 might be represented as `(1, 5, "bold", true)`.
 
@@ -62,43 +61,43 @@ Counters are represented as instances of the `Counter` class.
 Putting it all together, here's an example of an automerge document containing all the value types:
 
 ```typescript
-import  * as A  from "@automerge/automerge/next"
+import * as A from "@automerge/automerge/next";
 
 let doc = A.from({
-    map: { 
-        key: "value",
-        nested_map: {key: "value"},
-        nested_list: [1]
-    },
-    list: ["a", "b", "c", {nested: "map"}, ["nested list"]],
-    // Note we are using the `next` API for text, so text sequences are strings
-    text: "some text",
-    // In the `next` API non mergable strings are instances of `RawString`.
-    // You should generally not need to use these. They are retained for backwards
-    // compatibility
-    raw_string: new A.RawString("rawstring"), 
-    integer: 1,
-    float: 2.3,
-    boolean: true,
-    bytes: new Uint8Array([1, 2, 3]),
-    date: new Date(),
-    counter: new A.Counter(1),
-    none: null,
-})
+  map: {
+    key: "value",
+    nested_map: { key: "value" },
+    nested_list: [1],
+  },
+  list: ["a", "b", "c", { nested: "map" }, ["nested list"]],
+  // Note we are using the `next` API for text, so text sequences are strings
+  text: "some text",
+  // In the `next` API non mergable strings are instances of `RawString`.
+  // You should generally not need to use these. They are retained for backwards
+  // compatibility
+  raw_string: new A.RawString("rawstring"),
+  integer: 1,
+  float: 2.3,
+  boolean: true,
+  bytes: new Uint8Array([1, 2, 3]),
+  date: new Date(),
+  counter: new A.Counter(1),
+  none: null,
+});
 
-doc = A.change(doc, d => {
-    // Insert 'Hello' at the begnning of the string
-    A.splice(d, ["text"], 0, 0, "Hello ")
-    d.counter.increment(20)
-    d.map.key = "new value"
-    d.map.nested_map.key = "new nested value"
-    d.list[0] = "A"
-    d.list.insertAt(0, "Z")
-    d.list[4].nested = "MAP"
-    d.list[5][0] = "NESTED LIST"
-})
+doc = A.change(doc, (d) => {
+  // Insert 'Hello' at the begnning of the string
+  A.splice(d, ["text"], 0, 0, "Hello ");
+  d.counter.increment(20);
+  d.map.key = "new value";
+  d.map.nested_map.key = "new nested value";
+  d.list[0] = "A";
+  d.list.insertAt(0, "Z");
+  d.list[4].nested = "MAP";
+  d.list[5][0] = "NESTED LIST";
+});
 
-console.log(doc)
+console.log(doc);
 
 // Prints
 // {

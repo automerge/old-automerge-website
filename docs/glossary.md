@@ -6,18 +6,18 @@ sidebar_position: 1000
 
 ## CRDTs
 
-Automerge is a type of CRDT (Conflict-Free Replicated Datatype). A CRDT is a data structure that simplifies multi-user applications. We can use them to synchronize data between two devices in a way that both devices see the same application state.  In many systems, copies of some data need to be stored on multiple computers. Examples include:
-  * Mobile apps that store data on the local device, and that need to sync that data to other devices belonging to the same user (such as calendars, notes, contacts, or reminders);
-  * Distributed databases, which maintain multiple replicas of the data (in the same datacenter or in different locations) so that the system continues working correctly if some of the replicas are offline;
-  * Collaboration software, such as Google Docs, Trello, Figma, or many others, in which several users can concurrently make changes to the same file or data;
-  * Large-scale data storage and processing systems, which replicate data in order to achieve global scalability.
+Automerge is a type of CRDT (Conflict-Free Replicated Datatype). A CRDT is a data structure that simplifies multi-user applications. We can use them to synchronize data between two devices in a way that both devices see the same application state. In many systems, copies of some data need to be stored on multiple computers. Examples include:
 
-*[Read more about CRDTs](https://crdt.tech/)*
+- Mobile apps that store data on the local device, and that need to sync that data to other devices belonging to the same user (such as calendars, notes, contacts, or reminders);
+- Distributed databases, which maintain multiple replicas of the data (in the same datacenter or in different locations) so that the system continues working correctly if some of the replicas are offline;
+- Collaboration software, such as Google Docs, Trello, Figma, or many others, in which several users can concurrently make changes to the same file or data;
+- Large-scale data storage and processing systems, which replicate data in order to achieve global scalability.
 
+_[Read more about CRDTs](https://crdt.tech/)_
 
 ## Eventual Consistency
 
-Applications built with Automerge are *eventually consistent.* This means if several users are working together, they will *eventually* all see the same application state, but at any given moment it's possible for the users to be temporarily out of sync.
+Applications built with Automerge are _eventually consistent._ This means if several users are working together, they will _eventually_ all see the same application state, but at any given moment it's possible for the users to be temporarily out of sync.
 
 Eventual consistency allows applications to work offline: even if a user is disconnected from the internet, Automerge allows that user to view and modify their data. If the data is shared between several users, they may all update their data independently. Later, when a network is available again, Automerge ensures that those edits are cleanly merged. See the page on [conflicts](/docs/documents/conflicts/) for more detail on these merges.
 
@@ -43,12 +43,11 @@ Each change that is made to a data structure builds upon other changes to create
 
 Compaction is a way to serialize the current state of the document without the history. You might want to do this when:
 
-* You don't want to replicate the entire history because of bandwidth or resource concerns on the target device. This might be useful in embedded systems or mobile phones.
-* A deleted element contains some sensitive information that you would like to be purged from the history.
+- You don't want to replicate the entire history because of bandwidth or resource concerns on the target device. This might be useful in embedded systems or mobile phones.
+- A deleted element contains some sensitive information that you would like to be purged from the history.
 
-The downsides of compacting the history of a document include not being able to synchronize that compacted document with another document that doesn't have a common ancestor. 
+The downsides of compacting the history of a document include not being able to synchronize that compacted document with another document that doesn't have a common ancestor.
 
 ## Synchronization
 
-When two or more  devices make changes to a document, and then decide to exchange those changes to come to a consistent state, we call that *synchronization*. Synchronization can, in the most simple implementation, consist of sending the full list of changes in the history to all connected devices. To improve performance, devices may negotiate which changes are missing on either end and exchange only those changes which are missing, rather than the entire change history.
-
+When two or more devices make changes to a document, and then decide to exchange those changes to come to a consistent state, we call that _synchronization_. Synchronization can, in the most simple implementation, consist of sending the full list of changes in the history to all connected devices. To improve performance, devices may negotiate which changes are missing on either end and exchange only those changes which are missing, rather than the entire change history.

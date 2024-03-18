@@ -5,22 +5,24 @@
  */
 
 /* You can override the default Infima variables here. */
-p, li, ul {
-	font-family: "Merriweather", serif;
-	font-size: 1.2rem;
-	line-height: 1.7rem;
- }
+p,
+li,
+ul {
+  font-family: "Merriweather", serif;
+  font-size: 1.2rem;
+  line-height: 1.7rem;
+}
 
-:root { 
-	--ifm-color-primary:#ba7402;
---ifm-color-primary-dark: #ef9603;
---ifm-color-primary-darker: #e28d03;
---ifm-color-primary-darkest: #ba7402;
---ifm-color-primary-light: #fcad2c;
---ifm-color-primary-lighter: #fdb239;
---ifm-color-primary-lightest: #fdc261;
-	--ifm-color-white: #fcfcfc;
-	--ifm-background-color: #fcfcfc;
+:root {
+  --ifm-color-primary: #ba7402;
+  --ifm-color-primary-dark: #ef9603;
+  --ifm-color-primary-darker: #e28d03;
+  --ifm-color-primary-darkest: #ba7402;
+  --ifm-color-primary-light: #fcad2c;
+  --ifm-color-primary-lighter: #fdb239;
+  --ifm-color-primary-lightest: #fdc261;
+  --ifm-color-white: #fcfcfc;
+  --ifm-background-color: #fcfcfc;
 }
 
 .docusaurus-highlight-code-line {
@@ -30,17 +32,16 @@ p, li, ul {
   padding: 0 var(--ifm-pre-padding);
 }
 
-html[data-theme='dark'] .docusaurus-highlight-code-line {
+html[data-theme="dark"] .docusaurus-highlight-code-line {
   background-color: rgba(0, 0, 0, 0.3);
 }
 
-
-html[data-theme='dark'] {
-	--ifm-color-primary: #fbcc34;
---ifm-color-primary-dark: #fac516;
---ifm-color-primary-darker: #fac107;
---ifm-color-primary-darkest: #d0a004;
---ifm-color-primary-light: #fcd352;
---ifm-color-primary-lighter: #fcd761;
---ifm-color-primary-lightest: #fde28d;
+html[data-theme="dark"] {
+  --ifm-color-primary: #fbcc34;
+  --ifm-color-primary-dark: #fac516;
+  --ifm-color-primary-darker: #fac107;
+  --ifm-color-primary-darkest: #d0a004;
+  --ifm-color-primary-light: #fcd352;
+  --ifm-color-primary-lighter: #fcd761;
+  --ifm-color-primary-lightest: #fde28d;
 }

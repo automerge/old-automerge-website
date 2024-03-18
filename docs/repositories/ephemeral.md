@@ -1,6 +1,6 @@
 ---
 sidebar_position: 4
----  
+---
 
 # Ephemeral Data
 
@@ -11,10 +11,10 @@ Ephemeral data is associated with a particular document, which means you need to
 ## Sending
 
 ```typescript
-const handle = Repo.find("<some url>")
+const handle = Repo.find("<some url>");
 handle.broadcast({
-    "some": "message"
-})
+  some: "message",
+});
 ```
 
 The object passed to `broadcast` will be CBOR encoded so you can send whatever you like.

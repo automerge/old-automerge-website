@@ -1,6 +1,7 @@
 ---
 sidebar_position: 2
 ---
+
 # The JavaScript packages
 
 The javascript API has been through several iterations and is currently split over a few libraries. This page describes how all these pieces fit together.
@@ -19,8 +20,8 @@ Over time we have made a number of changes to the automerge API which are not ba
 
 ### Differences from stable
 
-* In the old API javascript strings are represented as scalar strings (see the [data model](/docs/documents/) for details) whilst in "next" javascript strings are `Text` sequences (i.e. they support concurrent insertions and deletions). This means that you should use `next.splice` to modify strings in the `next` API. Scalar strings in the `next` API are represented as instances of the `RawString` class.
-* The next API exposes the `diff` and `changeAt` methods
+- In the old API javascript strings are represented as scalar strings (see the [data model](/docs/documents/) for details) whilst in "next" javascript strings are `Text` sequences (i.e. they support concurrent insertions and deletions). This means that you should use `next.splice` to modify strings in the `next` API. Scalar strings in the `next` API are represented as instances of the `RawString` class.
+- The next API exposes the `diff` and `changeAt` methods
 
 ### Using the next API
 
@@ -31,7 +32,7 @@ There are two ways to use the next API
 If you are either using JavaScript in a modern browser or on node > 16 then you can do the following:
 
 ```javascript
-import {default as A} from "@automerge/automerge/next"
+import { default as A } from "@automerge/automerge/next";
 ```
 
 Note that for this to work in typescript you will need to have the following in your `tsconfig.json`
@@ -48,7 +49,7 @@ Note that for this to work in typescript you will need to have the following in 
 If for whatever reason you can't use `@automerge/automerge/next` then you can do this:
 
 ```javascript
-import {next as A} from "@automerge/automerge"
+import { next as A } from "@automerge/automerge";
 ```
 
 ## How we got here
@@ -64,4 +65,3 @@ More recently we rewrote automerge in Rust and deployed it to javascript by comp
 ### `@automerge/automerge-repo`
 
 The core automerge libraries (both the original classic library and the WASM implementation) offer a compact storage format and a network agnostic sync protocol, but they don't actually do the work of wiring these things up to real storage engines (such as filesystems) or transports (such as websockets). `automerge-repo` implements all of this plumbing and is how we recommend using automerge going forward.
-

@@ -31,7 +31,6 @@ The Automerge project provides a public sync server for you to experiment with `
 
 :::
 
-
 Next, create a document and make some changes to it:
 
 ```
@@ -40,6 +39,7 @@ Next, create a document and make some changes to it:
    > console.log(handle.url)
    automerge:2j9knpCseyhnK8izDmLpGP5WMdZQ
 ```
+
 The code logs a URL to the document you created. On another computer, or in another browser, you could load this document using the same URL, as shown below:
 
 ```
@@ -92,7 +92,7 @@ The examples below illustrate asynchronously loading a document or synchronously
 > console.log(doc)
 ```
 
-Or 
+Or
 
 ```
 > const handle = repo.find("automerge:2j9knpCseyhnK8izDmLpGP5WMdZQ")
@@ -166,6 +166,7 @@ Note that when `Repo` receives changes over the network or registers local chang
 ```
 
 ## What about &lt;X&gt;?
+
 We'd love to help you make automerge work in your favorite development environment! Please reach out to us on GitHub or via [our Slack](https://join.slack.com/t/automerge/shared_invite/zt-e4p3760n-kKh7r3KRH1YwwNfiZM8ktw).
 
 ## Extending `automerge-repo`
@@ -195,7 +196,7 @@ This release of `automerge-repo` is just for javascript. Automerge is a multi-la
 1. Documents with large histories (e.g. a collaboratively edited document with >60,000 edits) can be slow to sync.
 2. The sync protocol currently requires that a document it is syncing be loaded into memory. This means that a sync server can struggle to handle a lot of traffic on large documents.
 
-These two points mean that we're not ready to say this project is ready for production. 
+These two points mean that we're not ready to say this project is ready for production.
 
 We're working hard on fixing the performance so that we _can_ say this is ready for production. But if you are interested in experimenting with the library now, or if you are only going to be working with relatively small documents or low traffic sync servers then you are good to go!
 

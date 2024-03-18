@@ -31,10 +31,9 @@ Replace that section with:
 In the root of the project add the following contents to `craco.config.js`
 
 ```javascript
-const cracoWasm = require("craco-wasm")
+const cracoWasm = require("craco-wasm");
 
 module.exports = {
-    plugins: [cracoWasm()]
-}
+  plugins: [cracoWasm()],
+};
 ```
-

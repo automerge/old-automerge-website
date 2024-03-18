@@ -20,22 +20,22 @@ instead of a plain number, because it deals with concurrent changes correctly.
 To set up a `Counter`:
 
 ```js
-state = Automerge.change(state, doc => {
+state = Automerge.change(state, (doc) => {
   // The counter is initialized to 0 by default. You can pass a number to the
   // Automerge.Counter constructor if you want a different initial value.
-  doc.buttonClicks = new Automerge.Counter()
-})
+  doc.buttonClicks = new Automerge.Counter();
+});
 ```
 
 To get the current counter value, use `doc.buttonClicks.value`. Whenever you want to increase or
 decrease the counter value, you can use the `.increment()` or `.decrement()` method:
 
 ```js
-state = Automerge.change(state, doc => {
-  doc.buttonClicks.increment() // Add 1 to counter value
-  doc.buttonClicks.increment(4) // Add 4 to counter value
-  doc.buttonClicks.decrement(3) // Subtract 3 from counter value
-})
+state = Automerge.change(state, (doc) => {
+  doc.buttonClicks.increment(); // Add 1 to counter value
+  doc.buttonClicks.increment(4); // Add 4 to counter value
+  doc.buttonClicks.decrement(3); // Subtract 3 from counter value
+});
 ```
 
 > **Note:** In relational databases it is common to use an auto-incrementing counter to generate

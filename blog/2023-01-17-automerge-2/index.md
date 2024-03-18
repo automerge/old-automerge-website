@@ -39,13 +39,13 @@ With Automerge 2.0 we've made a big investment in improving documentation. In ad
 
 ## Supporting Automerge
 
-Those who have been following Automerge for a while may have noticed that we describe Automerge 2.0 as our first *supported* release. That’s because as part of the Automerge 2.0 release we’ve brought Alex Good onto the team full-time to provide support to external users, handle documentation, release management, and—of course—to continue implementing new Automerge features for the community.
+Those who have been following Automerge for a while may have noticed that we describe Automerge 2.0 as our first _supported_ release. That’s because as part of the Automerge 2.0 release we’ve brought Alex Good onto the team full-time to provide support to external users, handle documentation, release management, and—of course—to continue implementing new Automerge features for the community.
 
 This is a big moment for Ink & Switch and the Automerge project: we’re now able to provide support to our users thanks to sponsorship from enterprises like [Fly.io](https://fly.io/), [Prisma](https://www.prisma.io/), and [Bowtie](https://bowtie.works/) as well as so many others who have contributed either directly to Automerge or through supporting Martin Kleppmann on Patreon.
 
 If your business is interested in sponsoring Automerge, you can [sponsor us directly](https://github.com/sponsors/automerge), or [get in touch with us for more information or other sponsorship methods](mailto:hello@inkandswitch.com). Every little bit helps, and the more sponsors we have, the more work we can do while still remaining an independent open source project.
 
-> At Bowtie we support Automerge because it's the best way to achieve the resilliency properties that we're delivering to globally distributed private networks. It's clear to me that our sponsorship has furthered our software, and that this crew are among the best distributed-systems thinkers in the business. 
+> At Bowtie we support Automerge because it's the best way to achieve the resilliency properties that we're delivering to globally distributed private networks. It's clear to me that our sponsorship has furthered our software, and that this crew are among the best distributed-systems thinkers in the business.
 > -- Issac Kelly, CTO, Bowtie.
 
 ## Performance: Speed, Memory and Disk
@@ -58,13 +58,13 @@ With Automerge 2.0, we've brought together an efficient binary data format with 
 
 Let's take a look at some numbers. One of the most challenging benchmarks for CRDTs is realtime text collaboration. That's because a long editing session can result in hundreds of thousands of individual keystrokes to record and synchronize. Martin Kleppmann recorded the keystrokes that went into writing an academic paper and replaying that data has become a [popular benchmark](https://github.com/automerge/automerge-perf) for CRDTs.
 
-| Insert ~260k operations      | Timing (ms) | Memory (bytes) |
-| ---------------------------- | ----------- | -------------- |
-| Automerge 0.14               |    ~500,000 | ~1,100,000,000 |
-| Automerge 1.0.1              |      13,052 |    184,721,408 |
-| Automerge 2.0.1              |       1,816 |     44,523,520 |
-| Yjs                          |       1,074 |     10,141,696 |
-| Automerge 2.0.2-unstable     |         661 |     22,953,984 |
+| Insert ~260k operations  | Timing (ms) | Memory (bytes) |
+| ------------------------ | ----------- | -------------- |
+| Automerge 0.14           | ~500,000    | ~1,100,000,000 |
+| Automerge 1.0.1          | 13,052      | 184,721,408    |
+| Automerge 2.0.1          | 1,816       | 44,523,520     |
+| Yjs                      | 1,074       | 10,141,696     |
+| Automerge 2.0.2-unstable | 661         | 22,953,984     |
 
 Of course, even the most productive authors struggle to type an entire paper quite so quickly. Indeed, writing a paper can occur over months or even years, making both storage size on disk and load performance important as well.
 
@@ -72,15 +72,15 @@ Of course, even the most productive authors struggle to type an entire paper qui
 | -------------- | ----------- |
 | plain text     | 107,121     |
 | automerge 2.0  | 129,062     |
-| automerge 0.14 | 146,406,415      |
+| automerge 0.14 | 146,406,415 |
 
-The binary format works wonders in this example, encoding a full history for the document with only 30% overhead. That's less than one additional byte per character! The naive JSON encoding often used circa automerge 0.14 could exceed 1,300 bytes *per character*. If you'd like to learn more about the file format, we have a [specification](https://alexjg.github.io/automerge-storage-docs/) document.
+The binary format works wonders in this example, encoding a full history for the document with only 30% overhead. That's less than one additional byte per character! The naive JSON encoding often used circa automerge 0.14 could exceed 1,300 bytes _per character_. If you'd like to learn more about the file format, we have a [specification](https://alexjg.github.io/automerge-storage-docs/) document.
 
-| Load ~260k operations    | Timing (ms)  |
-| ------------------------ | ------------ |
-| Automerge 1.0.1          |         590  |
-| Automerge 2.0.1          |         593  |
-| Automerge 2.0.2-unstable |         438  |
+| Load ~260k operations    | Timing (ms) |
+| ------------------------ | ----------- |
+| Automerge 1.0.1          | 590         |
+| Automerge 2.0.1          | 593         |
+| Automerge 2.0.2-unstable | 438         |
 
 Loading the compressed document is fast as well, ensuring the best possible start-up time.
 
@@ -128,7 +128,7 @@ While we retain the full history of Automerge documents and provide APIs to acce
 
 ## History Management
 
-Today the best way to remove something from an Automerge document's history is to recreate the document from scratch or to reset to a time before that change went in. In the future, we plan to provide additional tools to give developers more control over document history. We expect this to include the ability to share just the latest version of a document (similar to a shallow clone in `git`), and to share updates that bypass changes you don't want to share (as when a developer squashes commits before publishing). 
+Today the best way to remove something from an Automerge document's history is to recreate the document from scratch or to reset to a time before that change went in. In the future, we plan to provide additional tools to give developers more control over document history. We expect this to include the ability to share just the latest version of a document (similar to a shallow clone in `git`), and to share updates that bypass changes you don't want to share (as when a developer squashes commits before publishing).
 
 # Conclusion
 

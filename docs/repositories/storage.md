@@ -1,6 +1,6 @@
 ---
 sidebar_position: 1
----  
+---
 
 # Storage
 
@@ -29,8 +29,8 @@ As noted above, this is safe for concurrent use so you can have multiple tabs po
 [`@automerge/automerge-repo-storage-nodefs`](https://www.npmjs.com/package/@automerge/automerge-repo-storage-nodefs) is a `StorageAdapter` which stores its data in a directory on the local filesystem. The location can be customized as per [the docs](https://automerge.org/automerge-repo/classes/_automerge_automerge_repo_storage_nodefs.NodeFSStorageAdapter.html#constructor)
 
 ```typescript
-import { NodeFSStorageAdapter } from "@automerge/automerge-repo-storage-nodefs"
-const storage = new NodeFSStorageAdapter()
+import { NodeFSStorageAdapter } from "@automerge/automerge-repo-storage-nodefs";
+const storage = new NodeFSStorageAdapter();
 ```
 
 As with the `IndexedDB` adapter this adapter is safe for multiple processes to use the same data directory.

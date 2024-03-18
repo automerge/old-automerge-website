@@ -22,17 +22,17 @@ values as the "winner", and it ensures that this winner is the same on all nodes
 
 ```js
 // Create two different documents
-let doc1 = Automerge.change(Automerge.init(), doc => {
-  doc.x = 1
-})
-let doc2 = Automerge.change(Automerge.init(), doc => {
-  doc.x = 2
-})
-doc1 = Automerge.merge(doc1, doc2)
-doc2 = Automerge.merge(doc2, doc1)
+let doc1 = Automerge.change(Automerge.init(), (doc) => {
+  doc.x = 1;
+});
+let doc2 = Automerge.change(Automerge.init(), (doc) => {
+  doc.x = 2;
+});
+doc1 = Automerge.merge(doc1, doc2);
+doc2 = Automerge.merge(doc2, doc1);
 // Now, we can't tell which value doc1.x and doc2.x are going to assume --
 // the choice is random. However, what's for certain is that they are equal.
-assert.deepEqual(doc1, doc2)
+assert.deepEqual(doc1, doc2);
 ```
 
 Although only one of the concurrently written values shows up in the object, the other values are
@@ -40,12 +40,11 @@ not lost. They are merely relegated to a conflicts object. Suppose `doc.x = 2` i
 "winning" value:
 
 ```js
-doc1 // {x: 2}
-doc2 // {x: 2}
-Automerge.getConflicts(doc1, 'x') // {'1@01234567': 1, '1@89abcdef': 2}
-Automerge.getConflicts(doc2, 'x') // {'1@01234567': 1, '1@89abcdef': 2}
+doc1; // {x: 2}
+doc2; // {x: 2}
+Automerge.getConflicts(doc1, "x"); // {'1@01234567': 1, '1@89abcdef': 2}
+Automerge.getConflicts(doc2, "x"); // {'1@01234567': 1, '1@89abcdef': 2}
 ```
-
 
 Here, we've recorded a conflict on property `x`. The object returned by `getConflicts` contains the
 conflicting values, both the "winner" and the "loser". You might use the information in the
@@ -58,5 +57,3 @@ resolved, and the conflict disappears from the object returned by `Automerge.get
 Automerge uses a combination of LWW (last writer wins) and multi-value register. By default, if you read from `doc.foo` you will get the LWW semantics, but you can also see the conflicts by calling `Automerge.getConflicts(doc, 'foo')` which has multi-value semantics.
 
 Every operation has a unique operation ID that is the combination of a counter and the actorId that generated it. Conflicts are ordered based on the counter first (using the actorId only to break ties when operations have the same counter value).
-
-
