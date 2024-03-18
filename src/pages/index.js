@@ -1,15 +1,16 @@
-import React from "react";
-import clsx from "clsx";
-import Layout from "@theme/Layout";
-import Link from "@docusaurus/Link";
-import useDocusaurusContext from "@docusaurus/useDocusaurusContext";
-import styles from "./index.module.css";
-import HomepageFeatures from "../components/HomepageFeatures";
+import React from 'react'
+import clsx from 'clsx'
+import Layout from '@theme/Layout'
+import Link from '@docusaurus/Link'
+import useDocusaurusContext from '@docusaurus/useDocusaurusContext'
+import styles from './index.module.css'
+import HomepageFeatures from '../components/HomepageFeatures'
+import '@fontsource/merriweather'
 
 function HomepageHeader() {
-  const { siteConfig } = useDocusaurusContext();
+  const { siteConfig } = useDocusaurusContext()
   return (
-    <header className={clsx("hero hero--secondary", styles.heroBanner)}>
+    <header className={clsx('hero hero--secondary', styles.heroBanner)}>
       <div className="container">
         <h1 className="hero__title">Build local-first software</h1>
         <p className="hero__subtitle">{siteConfig.tagline}</p>
@@ -20,11 +21,11 @@ function HomepageHeader() {
         </div>
       </div>
     </header>
-  );
+  )
 }
 
 export default function Home() {
-  const { siteConfig } = useDocusaurusContext();
+  const { siteConfig } = useDocusaurusContext()
   return (
     <Layout
       title={`Automerge CRDT`}
@@ -35,5 +36,5 @@ export default function Home() {
         <HomepageFeatures />
       </main>
     </Layout>
-  );
+  )
 }
