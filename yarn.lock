@@ -2510,6 +2510,11 @@
     url-loader "^4.1.1"
     webpack "^5.73.0"
 
+"@fontsource/merriweather@^5.0.12":
+  version "5.0.12"
+  resolved "https://registry.yarnpkg.com/@fontsource/merriweather/-/merriweather-5.0.12.tgz#8221eb544d389c0d468a9ec80a2430eedef53565"
+  integrity sha512-l7brVGcFUiGhK7bucRbwWYZDInfyXuVYEthHNw26RkkfMR9TFTiOAIABnN6PFr6Vjaz+c0o7ibLmdEMeSMDfRA==
+
 "@hapi/hoek@^9.0.0":
   version "9.2.1"
   resolved "https://registry.npmjs.org/@hapi/hoek/-/hoek-9.2.1.tgz"
