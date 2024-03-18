@@ -4,16 +4,10 @@
  * work well for content-centric websites.
  */
 
-/* You can override the default Infima variables here. */
-p,
-li,
-ul {
-  font-family: "Merriweather", serif;
-  font-size: 1.2rem;
-  line-height: 1.7rem;
-}
-
 :root {
+  --ifm-font-family-base: 'Merriweather', serif;
+  --ifm-font-size-base: 1rem;
+  --ifm-code-font-size: 0.8rem;
   --ifm-color-primary: #ba7402;
   --ifm-color-primary-dark: #ef9603;
   --ifm-color-primary-darker: #e28d03;
@@ -32,11 +26,11 @@ ul {
   padding: 0 var(--ifm-pre-padding);
 }
 
-html[data-theme="dark"] .docusaurus-highlight-code-line {
+html[data-theme='dark'] .docusaurus-highlight-code-line {
   background-color: rgba(0, 0, 0, 0.3);
 }
 
-html[data-theme="dark"] {
+html[data-theme='dark'] {
   --ifm-color-primary: #fbcc34;
   --ifm-color-primary-dark: #fac516;
   --ifm-color-primary-darker: #fac107;
@@ -44,4 +38,10 @@ html[data-theme="dark"] {
   --ifm-color-primary-light: #fcd352;
   --ifm-color-primary-lighter: #fcd761;
   --ifm-color-primary-lightest: #fde28d;
+}
+
+code {
+  display: inline-block;
+  padding: 0 0.3rem;
+  margin: 0 0.1rem;
 }
