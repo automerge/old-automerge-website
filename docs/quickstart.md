@@ -198,14 +198,13 @@ First, we'll add a network adapter to the `Repo` in our web app which syncs to a
 yarn add @automerge/automerge-repo-network-websocket
 ```
 
-Then add a network adapter connecting the repo to `sync.automerge.org`
+Then we'll add a network adapter connecting the repo to `sync.automerge.org`. Add the following import and change the repo definition in `main.tsx`:
 
-```
+```js
 // main.tsx
 // Add this import
 import { BrowserWebSocketClientAdapter } from "@automerge/automerge-repo-network-websocket"
 
-...
 
 // now update the repo definition to look like this:
 const repo = new Repo({
@@ -257,13 +256,13 @@ This change will be reflected in any connected and listening handles. Go back to
 
 ## Saving the document
 
-If you provide a `Repo` with a `StorageAdapter` then it will save documents for use later. In the browser we used IndexedDB:
+If you provide a `Repo` with a `StorageAdapter` then it will save documents for use later. In the example so far we use `IndexedDB`, as you can see in the `storage` option to `Repo`:
 
 ```js
 import { IndexedDBStorageAdapter } from '@automerge/automerge-repo-storage-indexeddb'
 import { BrowserWebSocketClientAdapter } from '@automerge/automerge-repo-network-websocket'
 
-const repo = new AutomergeRepo.Repo({
+const repo = new Repo({
   network: [new BrowserWebSocketClientAdapter('wss://sync.automerge.org')],
   storage: new IndexedDBStorageAdapter(),
 })
