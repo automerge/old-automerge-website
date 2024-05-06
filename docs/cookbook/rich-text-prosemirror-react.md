@@ -2,18 +2,20 @@
 sidebar_position: 2
 ---
 
-# Prosemirror Integration
+# Prosemirror + React + Automerge
 
-Automerge supports rich text editing on top of [ProseMirror](https://prosemirror.net/).
+Automerge supports rich text editing on top of [ProseMirror](https://prosemirror.net/). This guide will show you how to set up a simple collaborative rich text editor in React using Automerge and ProseMirror.
 
-All the code here can be found in [this repository](https://github.com/automerge/prosemirror-quickstart)
+All the code here can be found at https://github.com/automerge/automerge-prosemirror/examples/react
 
-Let's get an example vite app setup
+First, create a an example vite app using the `@automerge/vite-app` template. This will give you a basic React app with the Automerge dependencies already installed.
 
 ```bash
 yarn create @automerge/vite-app
 ```
+
 Then install our prosemirror dependencies
+
 
 ```bash
 yarn add @automerge/prosemirror prosemirror-example-setup prosemirror-model prosemirror-state prosemirror-view
@@ -58,7 +60,7 @@ function App({ docUrl }: { docUrl: AutomergeUrl }) {
 export default App
 ```
 
-Now, we're going to create a ProseMirror editor.tsx`. Prosemirror manages its own UI and state, it just needs to be attached to the DOM somehow. To achieve this we'll use the `useRef` hook to get hold of a reference to a dom element inside a React component which we can pass to prosemirror.
+Now, we're going to create a ProseMirror editor. Prosemirror manages its own UI and state, it just needs to be attached to the DOM somehow. To achieve this we'll use the `useRef` hook to get hold of a reference to a dom element inside a React component which we can pass to prosemirror.
 
 ```jsx title="src/App.tsx"
 import { AutomergeUrl } from "@automerge/automerge-repo"
