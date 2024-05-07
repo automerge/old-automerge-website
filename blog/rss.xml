@@ -18,7 +18,7 @@
 <p>If you want to get started building right away, check out the library here: <a href="https://github.com/automerge/automerge-prosemirror" target="_blank" rel="noopener noreferrer">https://github.com/automerge/automerge-prosemirror</a></p>
 <p>For everyone else, let's start with a demo, before moving on to discuss what rich text is and how Automerge helps you use it.</p>
 <h2 class="anchor anchorWithStickyNavbar_LWe7" id="demo">Demo<a href="https://automerge.github.io/blog/2024/04/06/richtext/#demo" class="hash-link" aria-label="Direct link to Demo" title="Direct link to Demo">​</a></h2>
-<iframe src="http://automerge.org/automerge-prosemirror" style="width:100%;resize:both;height:500px"></iframe>
+<iframe src="https://automerge.org/automerge-prosemirror" style="width:100%;resize:both;height:500px"></iframe>
 <p>On its own, this should seem pretty boring: it's a rich text editor which  supports most of the features users typically expect from a rich text editor. What makes this demo interesting is the support for real time collaboration which means that we can manage concurrent changes to complex formatting, like this:</p>
 <video controls="" autoplay="" loop="" style="width:100%"><source src="/img/automerge-formatting-change.webm" type="video/webm"><p>Merging formatting and structure changes in Automerge</p></video>
 <p>The Automerge-ProseMirror binding is designed to be easy to integrate into any ProseMirror editor you might want to build.  To see how it works, refer to <a href="https://automerge.github.io/docs/cookbook/rich-text-prosemirror-vanilla/">the cookbook</a>, but the short story is that it takes just a few lines of code.</p>
