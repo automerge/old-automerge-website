@@ -27,6 +27,6 @@ newDoc = Automerge.change(currentDoc, (doc) => {
   // cases where you want a string which is not collaborative - URLs for example
   // should generally be updated in one go. In this case you can use `RawString`,
   // which does not allow concurrent updates.
-  doc.atomicStringValue = new Automerge.RawString("")
+  doc.atomicStringValue = new Automerge.RawString("");
 });
 ```
