@@ -5,7 +5,12 @@
   align-items: center;
 }
 
-html[data-theme="dark"] .logo-dark,
-html[data-theme="light"] .logo-light {
+
+html[data-theme="light"] .logoLight {
+  display: none;
+}
+
+
+html[data-theme="dark"] .logoDark {
   display: none;
 }

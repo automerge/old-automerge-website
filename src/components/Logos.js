@@ -20,8 +20,8 @@ export function DxosLogo() {
 export function Logo({ name, url, LightSVG, DarkSVG }) {
   const title = name + " logo";
   return (<a href={url} aria-label={name} target="_blank">
-    <DarkSVG height={"5em"} className="logo-dark" styles={styles[".logo-dark"]} alt={title} />
-    <LightSVG height={"5em"} className="logo-light" styles={styles[".logo-dark"]} alt={title} />
+    <DarkSVG height={"5em"} className={styles.logoDark} alt={title} />
+    <LightSVG height={"5em"} className={styles.logoLight} alt={title} />
   </a>)
 }
 
