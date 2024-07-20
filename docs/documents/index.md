@@ -71,7 +71,7 @@ let doc = A.from({
   },
   list: ["a", "b", "c", { nested: "map" }, ["nested list"]],
   // Note we are using the `next` API for text, so text sequences are strings
-  text: "some text",
+  text: "world",
   // In the `next` API non mergable strings are instances of `RawString`.
   // You should generally not need to use these. They are retained for backward
   // compatibility
