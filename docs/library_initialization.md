@@ -112,6 +112,19 @@ If you're in an environment which doesn't support importing WebAssembly modules 
 
 For this latter part we expose two exports from the `@automerge/automerge` package which can be used to obtain the raw WebAssembly. `@automerge/automerge/automerge.wasm` is a binary version of the WebAssembly file, whilst `@automerge/automerge/automerge.wasm.base64.js` is a JS modules with a single export called `automergeWasmBase64` which is a base64 encoded version of the WebAssembly file.
 
+:::note
+Automerge's npm module uses the [package exports](https://nodejs.org/api/packages.html#exports) feature, which means your environment will need to support that.
+
+For example, React Native requires [configuring](https://reactnative.dev/blog/2023/06/21/package-exports-support) a `metro.config.js` to support package exports:
+
+```js
+const {getDefaultConfig} = require("expo/metro-config")
+const config = getDefaultConfig(__dirname)
+config.resolver && (config.resolver.unstable_enablePackageExports = true)
+module.exports = config
+```
+:::
+
 Once you've obtained the WebAssembly file you initialize it by passing it to either `initializeWasm` - which expects a WebAssembly module or a URL to fetch - or to `initializeBase64Wasm` which expects a base64 encoded string.
 
 ### Using the raw WebAssembly
