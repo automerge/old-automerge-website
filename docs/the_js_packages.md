@@ -32,7 +32,7 @@ There are two ways to use the next API
 If you are either using JavaScript in a modern browser or on node > 16 then you can do the following:
 
 ```javascript
-import { default as A } from "@automerge/automerge/next";
+import * as A from "@automerge/automerge/next";
 ```
 
 Note that for this to work in typescript you will need to have the following in your `tsconfig.json`
