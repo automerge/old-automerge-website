@@ -1,0 +1,26 @@
+.bloglist {
+    display: flex;
+    flex-direction: column;
+    justify-content: left;
+    gap: .3em;
+    width: 100%;
+    padding-bottom: .5em;
+}
+
+
+.date {
+    opacity: 70%;
+    text-align: right;
+}
+
+.post {
+    max-width: 60ch;
+    padding-bottom: .3em;
+    display: grid;
+    grid-template-columns: 10ch 1fr;
+    justify-content: left;
+    column-gap: 1ch;
+    width: 100%;
+    list-style-type: none;
+    text-align: left;
+}

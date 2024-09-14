@@ -8,9 +8,9 @@ const darkCodeTheme = require("prism-react-renderer/themes/dracula");
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
-  title: "Automerge CRDT",
+  title: "Welcome to Automerge",
   tagline:
-    "Automerge is a library of data structures for building collaborative applications.",
+    "A cross-platform sync engine for building local-first collaborative apps.",
   url: "https://automerge.github.io",
   baseUrl: "/",
   trailingSlash: true,
@@ -23,7 +23,7 @@ const config = {
   markdown: {
     mermaid: true,
   },
-  themes: ["@docusaurus/theme-mermaid"],
+  themes: ["@docusaurus/theme-mermaid", "@docusaurus/theme-live-codeblock"],
 
   presets: [
     [
@@ -151,7 +151,7 @@ const config = {
         {
           name: "description",
           content:
-            "Automerge is a library for building collaborative, local-first applications.",
+            "Automerge is a toolkit for building collaborative, local-first applications.",
         },
       ],
       prism: {

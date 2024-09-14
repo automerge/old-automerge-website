@@ -21,3 +21,36 @@
   align-items: center;
   justify-content: center;
 }
+
+.homesection {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-around;
+  gap: 2rem;
+  padding: 2rem;
+  width: 100%;
+}
+
+.homesection:nth-child(even) {
+  background-color: var(--ifm-hero-background-color);
+}
+
+.homesection a {
+  text-decoration: underline 2px;
+  text-decoration-color: var(--ifm-color-primary);
+}
+
+.homesection a:hover {
+  color: var(--ifm-color-primary-darkest);
+}
+
+.homesection a:hover[data-theme="dark"] {
+  color: var(--ifm-color-primary-lightest);
+}
+
+.twocolwrap {
+  display: "grid";
+  grid-template-columns: "1fr 1fr";
+  text-wrap: "wrap"
+}

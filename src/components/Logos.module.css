@@ -1,0 +1,16 @@
+#logos {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+
+
+html[data-theme="light"] .logoLight {
+  display: none;
+}
+
+
+html[data-theme="dark"] .logoDark {
+  display: none;
+}
