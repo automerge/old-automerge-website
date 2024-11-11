@@ -29,6 +29,7 @@ First, we need to get `automerge-repo` set up:
 import { DocHandle, Repo, isValidAutomergeUrl } from "@automerge/automerge-repo"
 import { IndexedDBStorageAdapter } from "@automerge/automerge-repo-storage-indexeddb"
 import { BrowserWebSocketClientAdapter } from "@automerge/automerge-repo-network-websocket"
+import { init } from "@automerge/automerge-prosemirror"
 
 const repo = new Repo({
   storage: new IndexedDBStorageAdapter("automerge"),
@@ -56,30 +57,19 @@ At this point we have a document handle with a fully loaded automerge document, 
 
 ```js title="main.js"
 // This is the integration with automerge.
-const mirror = new AutoMirror(["text"])
+const { schema, doc, plugin } = init(handle, ["text"])
+
+const editorConfig = {
+  schema,
+  plugins: [plugin],
+}
 
 // This is the prosemirror editor.
 const view = new EditorView(document.querySelector("#editor"), {
   state: EditorState.create({
-    doc: mirror.initialize(handle), // Note that we initialize using the mirror
-    plugins: exampleSetup({ schema: mirror.schema }), // We _must_ use the schema from the mirror
+    doc, // Note that we initialize using the mirror
+    plugins: exampleSetup({ schema, plugins: [plugin] }),
   }),
-  // Here we intercept the transaction and apply it to the automerge document
-  dispatchTransaction: (tx) => {
-    const newState = mirror.intercept(handle, tx, view.state)
-    view.updateState(newState)
-  },
-})
-
-// If changes arrive from elsewhere, update the prosemirror state and view
-handle.on("change", d => {
-  const newState = mirror.reconcilePatch(
-    d.patchInfo.before,
-    d.doc,
-    d.patches,
-    view.state,
-  )
-  view.updateState(newState)
 })
 ```
 

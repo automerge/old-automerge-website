@@ -70,7 +70,7 @@ import { useEffect, useRef, useState } from "react"
 import {EditorState} from "prosemirror-state"
 import {EditorView} from "prosemirror-view"
 import {exampleSetup} from "prosemirror-example-setup"
-import { AutoMirror } from "@automerge/prosemirror"
+import { init } from "@automerge/prosemirror"
 import "prosemirror-example-setup/style/style.css"
 import "prosemirror-menu/style/menu.css"
 import "prosemirror-view/style/prosemirror.css"
@@ -94,15 +94,16 @@ function App({ docUrl }: { docUrl: AutomergeUrl }) {
   // highlight-start
   const [view, setView] = useState<EditorView | null>(null)
   useEffect(() => {
-    // We're not using this for anything yet, but this `AutoMirror` object is
-    // where we will integrate prosemirror with automerge
-    const mirror = new AutoMirror(["text"])
     if (editorRoot.current != null && loaded) {
+      // This is the integration with automerge   
+      const { doc, schema, plugin } = init(handle!, ["text"])
+      const plugins = exampleSetup({schema})
+      plugins.push(plugin)
       const view = new EditorView(editorRoot.current, {
         state: EditorState.create({
-          schema: mirror.schema, // It's important that we use the schema from the mirror
-          plugins: exampleSetup({schema: mirror.schema}),
-          doc: mirror.initialize(handle!, ["text"])
+          schema,
+          plugins,
+          doc,
         }),
       })
       setView(view)
@@ -146,96 +147,4 @@ At this point if you run the application you'll find that there's a working pros
 }
 ```
 
-Alright, now we're ready to collaborate.
-
-Update `src/App.tsx` with the following changes:
-
-```jsx title="src/App.tsx"
-import { AutomergeUrl, DocHandleChangePayload } from "@automerge/automerge-repo"
-import { useHandle } from "@automerge/automerge-repo-react-hooks"
-import { useEffect, useRef, useState } from "react"
-import {EditorState, Transaction} from "prosemirror-state"
-import {EditorView} from "prosemirror-view"
-import {exampleSetup} from "prosemirror-example-setup"
-import { AutoMirror } from "@automerge/prosemirror"
-import "prosemirror-example-setup/style/style.css"
-import "prosemirror-menu/style/menu.css"
-import "prosemirror-view/style/prosemirror.css"
-import "./App.css"
-
-function App({ docUrl }: { docUrl: AutomergeUrl }) {
-  const editorRoot = useRef<HTMLDivElement>(null)
-  const handle = useHandle<{text: string}>(docUrl)
-  const [loaded, setLoaded] = useState(handle && handle.docSync() != null)
-  useEffect(() => {
-    if (handle != null) {
-      handle.whenReady().then(() => {
-        if (handle.docSync() != null) {
-          setLoaded(true)
-        }
-      })
-    }
-  }, [handle])
-
-  const [view, setView] = useState<EditorView | null>(null)
-  useEffect(() => {
-    // We're not using this for anything yet, but this `AutoMirror` object is
-    // where we will integrate prosemirror with automerge
-    const mirror = new AutoMirror(["text"])
-    // highlight-start
-    let view: EditorView // We need a forward reference to use next
-    // This is a callback which will update the prosemirror view whenever the document changes
-    const onPatch: (args: DocHandleChangePayload<unknown>) => void = ({
-      doc,
-      patches,
-      patchInfo,
-    }) => {
-      const newState = mirror.reconcilePatch(
-        patchInfo.before,
-        doc,
-        patches,
-        view!.state,
-      )
-      view!.updateState(newState)
-    }
-    // highlight-end
-    if (editorRoot.current != null && loaded) {
-      view = new EditorView(editorRoot.current, {
-        state: EditorState.create({
-          schema: mirror.schema, // It's important that we use the schema from the mirror
-          plugins: exampleSetup({schema: mirror.schema}),
-          doc: mirror.initialize(handle!, ["text"]),
-        }),
-        // highlight-start
-        // Here we're intercepting the prosemirror transaction and feeding it through the AutoMirror
-        dispatchTransaction: (tx: Transaction) => {
-          const newState = mirror.intercept(handle!, tx, view!.state)
-          view!.updateState(newState)
-        },
-        // highlight-end
-      })
-      setView(view)
-      // highlight-next-line
-      handle!.on("change", onPatch)
-    }
-    return () => {
-      // highlight-start
-      // we have to remove the listener when tearing down
-      if (handle != null) {
-        handle.off("change", onPatch)
-      }
-      // highlight-end
-      setView(null)
-      if (view != null) {
-        view.destroy()
-      }
-    }
-  }, [editorRoot, loaded])
-
-  return <div id="editor" ref={editorRoot}></div>
-}
-
-export default App
-```
-
-Now, you can load up the app in a different tab, or a different browser (the URL will contain a document URL after the `#`), and you can see changes being merged from one side to the other.
+Alright, now we're ready to collaborate, you can load up the app in a different tab, or a different browser (the URL will contain a document URL after the `#`), and you can see changes being merged from one side to the other.
