@@ -136,7 +136,7 @@ Here's an example of using the raw WebAssembly in a Vite application. Here we ca
 import wasmUrl from "@automerge/automerge/automerge.wasm?url";
 // Note the `/slim` suffixes
 import { next as Automerge } from "@automerge/automerge/slim";
-import { Repo } from `@automerge/automerge-repo/slim`;
+import { Repo } from "@automerge/automerge-repo/slim";
 
 await next.initializeWasm(wasmUrl)
 
