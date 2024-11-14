@@ -47,6 +47,29 @@ export default defineConfig({
 })
 ```
 
+### Unbundled (Vanilla) JS
+
+If you'd rather use Automerge outwide of any build processes, you can use something like the following example:
+
+```javascript
+import * as AutomergeRepo from "https://esm.sh/@automerge/automerge-repo/slim?bundle-deps"
+import { IndexedDBStorageAdapter } from "https://esm.sh/@automerge/automerge-repo-storage-indexeddb?bundle-deps"
+import { BrowserWebSocketClientAdapter } from "https://esm.sh/@automerge/automerge-repo-network-websocket?bundle-deps"
+import { MessageChannelNetworkAdapter } from "https://esm.sh/@automerge/automerge-repo-network-messagechannel?bundle-deps"
+
+await AutomergeRepo.initializeWasm(
+  fetch("https://esm.sh/@automerge/automerge/dist/automerge.wasm")
+)
+
+// Then set up an automerge repo (loading with our annoying WASM hack)
+const repo = new AutomergeRepo.Repo({
+    storage: new IndexedDBStorageAdapter(),
+    network: [new BrowserWebSocketClientAdapter("wss://sync.automerge.org")],
+})
+```
+
+Note that in some environments you may not have support for top-level await, in which case, you can run the last two statements inside an async function.
+
 ### Cloudflare Workers
 
 Here you should be good to go by just importing `@automerge/automerge` as normal.
