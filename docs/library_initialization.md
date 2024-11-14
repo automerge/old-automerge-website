@@ -52,10 +52,11 @@ export default defineConfig({
 If you'd rather use Automerge outwide of any build processes, you can use something like the following example:
 
 ```javascript
-import * as AutomergeRepo from "https://esm.sh/@automerge/automerge-repo/slim?bundle-deps"
-import { IndexedDBStorageAdapter } from "https://esm.sh/@automerge/automerge-repo-storage-indexeddb?bundle-deps"
-import { BrowserWebSocketClientAdapter } from "https://esm.sh/@automerge/automerge-repo-network-websocket?bundle-deps"
-import { MessageChannelNetworkAdapter } from "https://esm.sh/@automerge/automerge-repo-network-messagechannel?bundle-deps"
+// This approach requires the initializeWasm export not yet found in the stable 1.2.1 release.
+import * as AR from "https://esm.sh/@automerge/automerge-repo@2.0.0-alpha.14/slim?bundle-deps"
+import { IndexedDBStorageAdapter } from "https://esm.sh/@automerge/automerge-repo-storage-indexeddb@2.0.0-alpha.14?bundle-deps"
+import { BrowserWebSocketClientAdapter } from "https://esm.sh/@automerge/automerge-repo-network-websocket@2.0.0-alpha.14?bundle-deps"
+import { MessageChannelNetworkAdapter } from "https://esm.sh/@automerge/automerge-repo-network-messagechannel@2.0.0-alpha.14?bundle-deps"
 
 await AutomergeRepo.initializeWasm(
   fetch("https://esm.sh/@automerge/automerge/dist/automerge.wasm")
