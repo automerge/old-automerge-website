@@ -96,7 +96,7 @@ function App({ docUrl }: { docUrl: AutomergeUrl }) {
   useEffect(() => {
     if (editorRoot.current != null && loaded) {
       // This is the integration with automerge   
-      const { doc, schema, plugin } = init(handle!, ["text"])
+      const { pmDoc: doc, schema, plugin } = init(handle!, ["text"])
       const plugins = exampleSetup({schema})
       plugins.push(plugin)
       const view = new EditorView(editorRoot.current, {
