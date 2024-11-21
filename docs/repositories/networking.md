@@ -34,14 +34,14 @@ import { NodeWSServerAdapter } from "@automerge/automerge-repo-network-websocket
 import express from "express";
 
 const wss = new WebSocketServer({ noServer: true });
-const server = express();
+const app = express();
+const server = app.listen(8080);
 server.on("upgrade", (request, socket, head) => {
   wss.handleUpgrade(request, socket, head, (socket) => {
     wss.emit("connection", socket, request);
   });
 });
 const adapter = new NodeWSServerAdapter(wss);
-server.listen(8080);
 ```
 
 ### Client
