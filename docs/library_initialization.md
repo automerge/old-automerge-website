@@ -49,7 +49,7 @@ export default defineConfig({
 
 ### Unbundled (Vanilla) JS
 
-If you'd rather use Automerge outwide of any build processes, you can use something like the following example:
+If you'd rather use Automerge outside of any build processes, you can use something like the following example:
 
 ```javascript
 // This approach requires the initializeWasm export not yet found in the stable 1.2.1 release.
