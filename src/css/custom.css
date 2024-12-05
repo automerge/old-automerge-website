@@ -75,6 +75,8 @@ html[data-theme='dark'] .docusaurus-highlight-code-line {
 a {
   --ifm-link-color: var(--ifm-color-content);
   text-decoration-skip-ink: none;
+  text-decoration-color: var(--ifm-link-decoration-color);
+  text-decoration-thickness: var(--ifm-link-decoration-thickness);
 }
 
 a:hover,
@@ -83,11 +85,15 @@ a:hover,
 .table-of-contents__link:hover code,
 .table-of-contents__link--active code {
   color: inherit;
+  text-decoration-color: var(--ifm-link-decoration-color);
+  text-decoration-thickness: var(--ifm-link-decoration-thickness);
 }
 
 article a {
-  --ifm-link-decoration: underline 3px solid var(--ifm-color-primary);
-  --ifm-link-hover-decoration: underline 3px solid var(--ifm-color-primary);
+  --ifm-link-decoration: underline;
+  --ifm-link-decoration-color: var(--ifm-color-primary);
+  --ifm-link-decoration-thickness: 3px;
+  --ifm-link-hover-decoration: underline;
 }
 
 article div {
@@ -102,7 +108,9 @@ article div {
 .navbar__link:hover,
 .navbar__brand:hover {
   color: inherit;
-  text-decoration: underline 3px solid var(--ifm-color-primary) !important;
+  text-decoration-line: underline !important;
+  text-decoration-color: var(--ifm-color-primary) !important;
+  text-decoration-thickness: 3px !important;
 }
 
 .navbar__title {
