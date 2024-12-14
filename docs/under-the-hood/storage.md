@@ -59,7 +59,7 @@ What we want to be able to do then is to know that if we are writing a compacted
 
 Of course, we also want to remove the un-compacted data. A compacting process can't just delete everything because another process might have written new changes since it started compaction. Each process then needs to keep track of every change it has loaded from storage and then when compacting _only delete those changes_.
 
-The upshot of all this then is that our model for storage is not a key value store with document IDs as keys and byte arrays as values, but instead a slightly more complex model where the keys are arrays of the form `[<document ID>, <chunk type>, <chunk identifier>]` where chunk type is either `"snapshot"` or "`incremental"` and the chunk ID is either the heads of the documnt at compaction time or the hash of the change bytes respectively. The storage backend then must implement range queries so the storage system can do things like "load all the chunks for document ID x".
+The upshot of all this then is that our model for storage is not a key value store with document IDs as keys and byte arrays as values, but instead a slightly more complex model where the keys are arrays of the form `[<document ID>, <chunk type>, <chunk identifier>]` where chunk type is either `"snapshot"` or "`incremental"` and the chunk ID is either the heads of the document at compaction time or the hash of the change bytes respectively. The storage backend then must implement range queries so the storage system can do things like "load all the chunks for document ID x".
 
 In typescript that looks like this:
 
