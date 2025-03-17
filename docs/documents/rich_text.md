@@ -61,7 +61,7 @@ doc = Automerge.change(doc, d => {
     Automerge.splice(d, ["text"], 1, 0, "Hello")
     // Insert another paragraph
     Automerge.splitBlock(d, ["text"], 6, {type: "paragraph", parents: []})
-    Automerge.splice(d, ["text"], 1, 0, "world")
+    Automerge.splice(d, ["text"], 7, 0, "world")
 
     // Add a mark which covers the end of "hello" and the start of "world"
     Automerge.mark(d, ["text"], {start: 4, end: 8, expand: "both"}, "bold", true)
