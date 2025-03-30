@@ -138,15 +138,6 @@ For this latter part we expose two exports from the `@automerge/automerge` packa
 
 :::note
 Automerge's npm module uses the [package exports](https://nodejs.org/api/packages.html#exports) feature, which means your environment will need to support that.
-
-For example, React Native requires [configuring](https://reactnative.dev/blog/2023/06/21/package-exports-support) a `metro.config.js` to support package exports:
-
-```js
-const {getDefaultConfig} = require("expo/metro-config")
-const config = getDefaultConfig(__dirname)
-config.resolver && (config.resolver.unstable_enablePackageExports = true)
-module.exports = config
-```
 :::
 
 Once you've obtained the WebAssembly file you initialize it by passing it to either `initializeWasm` - which expects a WebAssembly module or a URL to fetch - or to `initializeBase64Wasm` which expects a base64 encoded string.
