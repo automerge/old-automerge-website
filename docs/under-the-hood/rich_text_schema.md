@@ -84,9 +84,14 @@ The `parents` array of a block represents the blocks which it appears inside. Fo
 }
 ```
 
-Represents a paragraph which is inside a blockquote. We call the `path` of a block marker the array `[...parents, type]`. The children of some block `a` are all the blocks following that marker for which the path of `a` is a proper prefix of the child block's path. 
+Represents a paragraph which is inside a blockquote. We call the `path` of a block marker the array `[...parents, type]`. The children of some block `a` are all the blocks following that marker for which the path of `a` is a proper prefix of the child block's path. Note that because a blocks contents are always after it and before it's next sibling, paths don't need to be unique - they only need to provide enough information to clearly match where in the hierarchy a block sits.
 
-For example, given the following sequence of block marks:
+:::info
+
+Sometimes a block will reference a parent that doesn't exist in the list. When that happens - that parent is implicitly created with the defaults expected for it's block type. This ensures you can't accidentally remove a block's container by deleting the containing block or one of the block's siblings, since each block contains a minimal copy of the hierarchy needed to properly place it.
+:::
+
+For example, the following sequence of block marks:
 
 ```
 { parents: ["blockquote"], type: "paragraph" }
@@ -94,7 +99,17 @@ For example, given the following sequence of block marks:
 { parents: [], type: "paragraph" }
 ```
 
-The second child is a parent of the first, while the final block is a sibling of the first block.
+Will result in the following hierarchy:
+
+```
+blockquote:
+  - paragraph
+  - ordered-list-item:
+      - paragraph
+paragraph
+```
+
+Note that the "blockquote" and "ordered-list-item" blocks are generated because they are parent's of the first two paragraphs, even though they aren't explicitly listed.
 
 ### Embeds
 
