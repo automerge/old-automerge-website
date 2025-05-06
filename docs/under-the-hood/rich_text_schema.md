@@ -84,9 +84,14 @@ The `parents` array of a block represents the blocks which it appears inside. Fo
 }
 ```
 
-Represents a paragraph which is inside a blockquote. We call the `path` of a block marker the array `[...parents, type]`. The children of some block `a` are all the blocks following that marker for which the path of `a` is a proper prefix of the child block's path. 
+Represents a paragraph which is inside a blockquote. We call the `path` of a block marker the array `[...parents, type]`. The children of some block `a` are all the blocks following that marker for which the path of `a` is a proper prefix of the child block's path. Note that because a blocks contents are always after it and before it's next sibling, paths don't need to be unique - they only need to provide enough information to clearly match where in the hierarchy a block sits.
 
-For example, given the following sequence of block marks:
+:::info
+
+Sometimes a block will reference a parent that doesn't exist in the list. When that happens - that parent is implicitly created with the defaults expected for it's block type. This ensures you can't accidentally remove a block's container by deleting the containing block or one of the block's siblings, since each block contains a minimal copy of the hierarchy needed to properly place it.
+:::
+
+For example, the following sequence of block marks:
 
 ```
 { parents: ["blockquote"], type: "paragraph" }
@@ -94,10 +99,88 @@ For example, given the following sequence of block marks:
 { parents: [], type: "paragraph" }
 ```
 
-The second child is a parent of the first, while the final block is a sibling of the first block.
+Will result in the following hierarchy:
+
+```
+blockquote:
+  - paragraph
+  - ordered-list-item:
+      - paragraph
+paragraph
+```
+
+Note that the "blockquote" and "ordered-list-item" blocks are generated because they are parent's of the first two paragraphs, even though they aren't explicitly listed.
 
 ### Embeds
 
 Blocks with `isEmbed: true` are blocks which are not part of the flow of text and represent some non-textual content such as an image. Embed block markers should _not_ break up the flow of text. I.e. the text following an `isEmbed: true` block marker belongs to the first non embed block preceding the embed block marker.
 
 If an application encounters an unknown embed block it should render the block using some sort of generic UI and round trip the block through the editor. The editor **SHOULD** allow the user to delete the embedded block marker in some manner.
+
+## Putting It All Together
+
+When retrieving the current value of a rich text document via the [Spans API](../../documents/rich-text#The%20Spans%20API), you will get an array of Spans with the following structure:
+
+```typescript
+{
+    type: "block",
+    value: {
+        type: string,
+        parents: string[],
+        attrs: Record<string, any>,
+        isEmbed: boolean,
+    }
+} |
+{
+    type: "text",
+    value: string,
+    marks?: {
+        [markName: string]: boolean | string | number // remember that marks are primitive values, and are not merged.
+    }
+}
+```
+
+For example, I could take the following rich text document:
+```typescript
+[
+    {
+        type: "text", value: "From the automerge docs:"
+    },
+    {
+        type: "block",
+        value: { parents: ["blockquote"], type: "paragraph" },
+    },
+    { type: "text", value:  "The requirements we have for this schema are:" },
+    {
+        type: "block",
+        value: { parents: ["blockquote", "ordered-list"], type: "paragraph"},
+    },
+    {type: "text": value: "The ability to represent inline text decoration such as bold spans, as well as semantic information like hyperlinks or code spans"},
+    {
+        type: "block",
+        value: { parents: ["blockquote", "ordered-list"], type: "paragraph"},
+    },
+    {type: "text": value: "A way of representing hierarchical structure which merges well - or, alternatively, which results in patches which are commensurate in size with the editing action the user took (inserting a paragraph is a single user action, we would like it to not result in a large patch which is hard to interpret)"},
+    { type: "block", value: {parents: ["blockquote"], type: "paragraph"}},
+    {type: "text", value: "..."}
+    { type: "block", value: { parents: [], type: "paragraph"}},
+    {
+        type: "text", value: "From: ", marks: { strong: true }
+    },
+    {
+        type: "text", value: "Rich Text Schema", marks: { link: '{"href": "/", title: ""}', em: true}
+    }
+]
+```
+
+Which I could render like so:
+
+> From the automerge docs
+>
+> > The requirements we have for this schema are:
+> >
+> > 1. The ability to represent inline text decoration such as bold spans, as well as semantic information like hyperlinks or code spans
+> > 2. A way of representing hierarchical structure which merges well - or, alternatively, which results in patches which are commensurate in size with the editing action the user took (inserting a paragraph is a single user action, we would like it to not result in a large patch which is hard to interpret)
+> > ...
+>
+> **From:** _[Rich Text Schema](/)_
