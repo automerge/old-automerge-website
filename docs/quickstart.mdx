@@ -219,6 +219,38 @@ To prepare to add local multiplayer capabilities to the app, you'll initialize a
 
 #### Create a Repo to hold your documents
 
+Start by adding `@automerge/react` to your project.
+
+<Tabs>
+<TabItem value="npm" label="npm">
+
+```bash
+# highlight-next-line
+$ npm install @automerge/react
+# ...installing dependencies...
+```
+
+</TabItem>
+<TabItem value="yarn" label="yarn">
+
+```bash
+# highlight-next-line
+$ yarn add @automerge/react
+# ...installing dependencies...
+```
+
+</TabItem>
+<TabItem value="pnpm" label="pnpm">
+
+```bash
+# highlight-next-line
+$ pnpm add @automerge/react
+# ...installing dependencies...
+```
+
+</TabItem>
+</Tabs>
+
 In `src/main.tsx`, import `@automerge/react` and create a Repo object configured with networking and storage.
 
 We'll start by storing our data in IndexedDB so we don't lose it when we refresh the browser, and we'll use the inefficient but simple BroadcastChannel networking adapter to keep our browser tabs in sync.
@@ -359,6 +391,9 @@ import {
   isValidAutomergeUrl,
 } from "@automerge/react";
 
+// highlight-next-line
+import type { TaskList } from "./App.tsx";
+
 const repo = new Repo({
   storage: new IndexedDBStorageAdapter(),
   network: [
@@ -374,15 +409,15 @@ const locationHash = document.location.hash.substring(1);
 // Depending if we have an AutomergeUrl, either find or create the document
 let handle;
 if (isValidAutomergeUrl(locationHash)) {
-  handle = repo.find(locationHash);
+  handle = await repo.find(locationHash);
 } else {
   handle = repo.create<TaskList>({
     tasks: [],
   });
+  // Set the location hash to the new document we just made.
+  document.location.hash = handle.url;
 }
 
-// Afterwards, update the hash again to allow link sharing.
-document.location.hash = handle.url;
 // highlight-end
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
@@ -493,17 +528,30 @@ Finally, we're going to handle text a little differently in this example. Follow
 
 There are two approaches you can use here. The simplest approach is to use the utility function `updateText`. It compares the before-and-after values of a string and applies a minimum edit script to combine the two. Typically for a more advanced integration with a text editor, you would use the `Automerge.splice()` function as part of an event handler, or -- ideally -- you'd just use an existing text-editor plugin like `@automerge/codemirror`.
 
+First, we'll add `updateText` to our imports from the library.
+
 ```ts
 import { updateText } from "@automerge/react";
+```
 
-// updateText() calculates and applies a minimum edit between two strings
-changeDoc((doc) =>
-  updateText(
-    doc, // the document to update
-    ["tasks", 0, "title"], // array representing the path to the text to update
-    "Learn more Automerge" // the new text value
-  )
-);
+Next, we replace the text updating function with one that uses it instead of just replacing the value completely.
+
+```ts
+    <input
+      type="text"
+      placeholder="What needs doing?"
+      value={title || ""}
+      onChange={(e) =>
+        changeDoc((doc) =>
+          updateText(
+            doc, // the document to update
+            ["tasks", 0, "title"], // array representing the path to the text to update
+            e.target.value
+          )
+        )
+      }
+      style={done ? { textDecoration: "line-through" } : {}}
+    />
 ```
 
 ## Collaboration in Automerge
@@ -542,20 +590,20 @@ The Automerge team provides a public community sync server at `wss://sync.autome
 
 #### Connect to a sync server via a websocket
 
-This is as simple as adding `BrowserWebSocketClientAdapter` to your Repo's network subsystem. We'll do this at creation time, but remember you can add and remove adapters later, too.
+This is as simple as adding `WebSocketClientAdapter` to your Repo's network subsystem. We'll do this at creation time, but remember you can add and remove adapters later, too.
 
 <Solution>
 
 ```tsx title="src/main.tsx"
 //...
 // highlight-next-line
-import { BrowserWebSocketClientAdapter } from "@automerge/react";
+import { WebSocketClientAdapter } from "@automerge/react";
 
 const repo = new Repo({
   network: [
     new BroadcastChannelNetworkAdapter(),
     // highlight-next-line
-    new BrowserWebSocketClientAdapter("wss://sync.automerge.org"),
+    new WebSocketClientAdapter("wss://sync.automerge.org"),
   ],
   storage: new IndexedDBStorageAdapter(),
 });
