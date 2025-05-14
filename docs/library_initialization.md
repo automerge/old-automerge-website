@@ -18,16 +18,15 @@ If you're building using webpack you need to enable the `asyncWebAssembly` featu
 
 ```javascript
 {
-    experiments: {
-        asyncWebAssembly: true
-    }
+  experiments: {
+    asyncWebAssembly: true;
+  }
 }
 ```
 
 ### Vite
 
 In vite you'll need to add two plugins, `vite-plugin-wasm` and `vite-plugin-top-level-await`.
-
 
 ```bash
 yarn add vite-plugin-wasm vite-plugin-top-level-await
@@ -52,21 +51,19 @@ export default defineConfig({
 If you'd rather use Automerge outwide of any build processes, you can use something like the following example:
 
 ```javascript
-// This approach requires the initializeWasm export not yet found in the stable 1.2.1 release.
-import * as AutomergeRepo from "https://esm.sh/@automerge/automerge-repo@2.0.0-alpha.14/slim?bundle-deps"
-import { IndexedDBStorageAdapter } from "https://esm.sh/@automerge/automerge-repo-storage-indexeddb@2.0.0-alpha.14?bundle-deps"
-import { BrowserWebSocketClientAdapter } from "https://esm.sh/@automerge/automerge-repo-network-websocket@2.0.0-alpha.14?bundle-deps"
-import { MessageChannelNetworkAdapter } from "https://esm.sh/@automerge/automerge-repo-network-messagechannel@2.0.0-alpha.14?bundle-deps"
+import * as AutomergeRepo from "https://esm.sh/@automerge/react@2.0.0/slim?bundle-deps";
 
 await AutomergeRepo.initializeWasm(
   fetch("https://esm.sh/@automerge/automerge/dist/automerge.wasm")
-)
+);
 
 // Then set up an automerge repo (loading with our annoying WASM hack)
 const repo = new AutomergeRepo.Repo({
-    storage: new IndexedDBStorageAdapter(),
-    network: [new BrowserWebSocketClientAdapter("wss://sync.automerge.org")],
-})
+  storage: new AutomergeRepo.IndexedDBStorageAdapter(),
+  network: [
+    new AutomergeRepo.BrowserWebSocketClientAdapter("wss://sync.automerge.org"),
+  ],
+});
 ```
 
 Note that in some environments you may not have support for top-level await, in which case, you can run the last two statements inside an async function.
@@ -81,13 +78,12 @@ If you see obscure looking rust stack traces complaining about being unable to c
 
 :::
 
-
 ### Deno
 
 If your Deno instance allows access to the filesystem (the default for local development) then you can import Automerge from an npm specifier like so:
 
 ```typescript
-import { next as Am } from "npm:@automerge/automerge"
+import { next as Am } from "npm:@automerge/automerge";
 ```
 
 However, if your Deno process doesn't have filesystem permission then you'll need to manually initialize the WebAssembly module. One way of doing that is:
@@ -113,14 +109,16 @@ import * as automerge from "npm:@automerge/automerge/slim";
 await automerge.next.initializeBase64Wasm(automergeWasmBase64);
 
 /* This example will return the contents of a documentID passed in as the path as JSON. */
-export default async function(req: Request): Promise<Response> {
+export default async function (req: Request): Promise<Response> {
   const docId = new URL(req.url).pathname.substring(1);
 
   if (!isValidAutomergeUrl("automerge:" + docId)) {
     return Response.error();
   }
 
-  const repo = new Repo({ network: [new BrowserWebSocketClientAdapter("wss://sync.automerge.org")] });
+  const repo = new Repo({
+    network: [new BrowserWebSocketClientAdapter("wss://sync.automerge.org")],
+  });
   const handle = repo.find(docId);
   const contents = await handle.doc();
   return Response.json(contents);
@@ -131,8 +129,8 @@ export default async function(req: Request): Promise<Response> {
 
 If you're in an environment which doesn't support importing WebAssembly modules as ES modules then you need to initialize the WebAssembly manually. There are two parts to this:
 
-* Change all imports in your application of `@automerge/automerge` and `@automerge/automerge-repo` to the "slim" variants (`@automerge/automerge/slim` and `@automerge/automerge-repo/slim)`
-* Obtain the WebAssembly module and initialize it manually, then wait for initialization to complete.
+- Change all imports in your application of `@automerge/automerge` and `@automerge/automerge-repo` to the "slim" variants (`@automerge/automerge/slim` and `@automerge/automerge-repo/slim)`
+- Obtain the WebAssembly module and initialize it manually, then wait for initialization to complete.
 
 For this latter part we expose two exports from the `@automerge/automerge` package which can be used to obtain the raw WebAssembly. `@automerge/automerge/automerge.wasm` is a binary version of the WebAssembly file, whilst `@automerge/automerge/automerge.wasm.base64.js` is a JS modules with a single export called `automergeWasmBase64` which is a base64 encoded version of the WebAssembly file.
 
@@ -142,11 +140,12 @@ Automerge's npm module uses the [package exports](https://nodejs.org/api/package
 For example, React Native requires [configuring](https://reactnative.dev/blog/2023/06/21/package-exports-support) a `metro.config.js` to support package exports:
 
 ```js
-const {getDefaultConfig} = require("expo/metro-config")
-const config = getDefaultConfig(__dirname)
-config.resolver && (config.resolver.unstable_enablePackageExports = true)
-module.exports = config
+const { getDefaultConfig } = require("expo/metro-config");
+const config = getDefaultConfig(__dirname);
+config.resolver && (config.resolver.unstable_enablePackageExports = true);
+module.exports = config;
 ```
+
 :::
 
 Once you've obtained the WebAssembly file you initialize it by passing it to either `initializeWasm` - which expects a WebAssembly module or a URL to fetch - or to `initializeBase64Wasm` which expects a base64 encoded string.
@@ -184,4 +183,3 @@ await next.initializeBase64Wasm(automergeWasmBase64)
 // Now we can get on with our lives
 const repo = new Repo({..})
 ```
-
