@@ -4,7 +4,7 @@ Automerge Repo was built to improve the developer experience of building Automer
 
 Over the last year we've been working on taking advantage of the rich history which Automerge records in order to build sophisticated version control workflows for general data types. In doing this we encountered a variety of common tasks related to examining the history of a document which have to be done in userland - so we've added these methods to Automerge Repo.
 
-At the same time, we've also noticed a number of papercuts which lead to extra boilerplat in Automerge Repo applications. Firstly `Repo.find` returns a `DocHandle` immediately and the caller is responsible for waiting until it is ready. Secondly, there are a lot of different packages to install in order to get up and running with common network and storage setups. We've tried to address all of these, read on for more details.
+At the same time, we've also noticed a number of papercuts which lead to extra boilerplate in Automerge Repo applications. Firstly `Repo.find` returns a `DocHandle` immediately and the caller is responsible for waiting until it is ready. Secondly, there are a lot of different packages to install in order to get up and running with common network and storage setups. We've tried to address all of these, read on for more details.
 
 ## `find` and `findWithProgress`
 
