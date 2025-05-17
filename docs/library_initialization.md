@@ -48,7 +48,7 @@ export default defineConfig({
 
 ### Unbundled (Vanilla) JS
 
-If you'd rather use Automerge outwide of any build processes, you can use something like the following example:
+If you'd rather use Automerge outside of any build processes, you can use something like the following example:
 
 ```javascript
 import * as AutomergeRepo from "https://esm.sh/@automerge/react@2.0.0/slim?bundle-deps";
