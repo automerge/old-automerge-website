@@ -1,0 +1,335 @@
+---
+sidebar_position: 1
+title: "Collaborative Code Editor with CodeMirror"
+---
+
+In this guide we're going to build a collaborative local first code editor. To achieve this we're going to do a few things:
+
+* Set up a React application which edits a simple text document using a `textarea`
+* Set up [CodeMirror](https://codemirror.net/) to provide a better editing experience
+* Add the Automerge CodeMirror plugin to make CodeMirror collaborative
+
+We won't assume any previous knowledge of CodeMirror.
+
+## Setting up an example application
+
+Let's get started by using the `@automerge/create-vite-app` [initializer](https://docs.npmjs.com/cli/v8/commands/npm-init) to create a new Automerge React application.
+
+```bash
+npm create @automerge/vite-app collaborative-markdown-editor
+cd collaborative-markdown-editor
+npm install
+```
+
+In another terminal let's start the vite dev server
+
+```bash
+npm run dev
+```
+
+Now if we go to `localhost:5173` we'll see the Automerge demo page which `create-repo-app` has generated. If you look in `src/main.rs` you'll see that the example application:
+
+* Sets up a `Repo` which uses IndexedDB to store data
+* Syncs via websockets with `wss://sync.automerge.org`
+* Attempts to load a document URL from the URL hash fragment and otherwise creates a new document and puts the URL in the hash fragment
+
+The upshot is that when you open the page you'll have a URL which you can use to collaborate on the same document. Now, let's customise this for our own ends.
+
+## Making a text document
+
+Let's start by defining the shape of our document. In `src/App.tsx` add the following type:
+
+```typescript title="src/App.tsx"
+export interface MarkdownDocument {
+    content: string
+}
+```
+
+Then, in `src/main.ts` update the document creation and lookup logic to load this type
+
+```typescript title="src/main.ts"
+// highlight-next-line
+import { type MarkdownDocument } from "./App" // Import the type we just created
+
+// ..
+
+const rootDocUrl = `${document.location.hash.substring(1)}`
+// highlight-next-line
+// Add the type we just imported here so we can type the document correctly
+// highlight-next-line
+let handle: DocHandle<MarkdownDocument>
+if (isValidAutomergeUrl(rootDocUrl)) {
+  handle = repo.find(rootDocUrl)
+} else {
+  // highlight-next-line
+  // Change the initialization logic to create a MarkdownDocument
+  // highlight-next-line
+  handle = repo.create({ content: ""})
+}
+
+
+npm install @codemirror/state @codemirror/view codemirror
+```
+
+## Rendering a text editor
+
+Now we're going to modify `src/App.tsx` to render a text editor. We'll start with a simple textarea, then we'll add CodeMirror. Update `App.tsx`
+
+```typescript title="src/App.tsx"
+// highlight-next-line
+import { useDocument, AutomergeUrl, updateText } from "@automerge/react"
+
+export interface MarkdownDocument {
+    content: string
+}
+
+function App({ docUrl }: { docUrl: AutomergeUrl }) {
+  const [doc, changeDoc] = useDocument<MarkdownDocument>(docUrl)
+
+  // highlight-start
+  // `doc` is undefined if we're still loading or requesting the document
+  if (!doc) {
+    return <div>Loading...</div>
+  }
+
+  return (
+    <textarea value={doc.content} onChange={(e) => {
+      changeDoc(d => {
+        updateText(d, ["content"], e.target.value)
+      })
+    }} />
+  )
+  // highlight-end
+}
+
+export default App
+```
+
+Here we're using a controlled `<textarea>`. Any time the text area changes we use `updateText` to update the "content" field of the document with the new text. `updateText` will automatically diff the new value against the old value and figure out a minimal set of updates to the automerge document. This works well if you call it for every character insertion - for larger changes it will not merge as effectively.
+
+If you open this example in another tab, or another browser, you'll see changes are immediately reflected in the other tabs and merged reasonably.
+
+## Adding CodeMirror
+
+A bare textarea is not a great editing experience. People typically want syntax highlighting, line numbers, etc. etc. CodeMirror is a fantastic library for this. 
+
+First, let's add CodeMirror dependencies:
+
+```bash
+npm install @codemirror/state @codemirror/view codemirror
+```
+
+The entry point for CodeMirror is the `EditorView`. This expects to be constructed with an html element to render into. In React this means we will need to use `useRef` to obtain a reference to the HTML element in order to initialize CodeMIrror. Then we'll need to use `useState` in order to hold on to the `EditorView`.
+
+```typescript title="src/App.tsx"
+
+function App({ docUrl }: { docUrl: AutomergeUrl }) {
+  const [doc, changeDoc] = useDocument<MarkdownDocument>(docUrl)
+  // highlight-start
+  // This will be set as the 'ref' property
+  // of the element we'll put the editor in
+  const container = useRef<HTMLDivElement>(null)
+  // Here we hang on to a reference to the view so we can
+  // use it to dispatch commands later on
+  const [editorView, setEditorView] = useState<EditorView>()
+
+  // Now, we want to initialize the editor when the component mounts
+  // and the document is ready
+  useEffect(() => {
+    if (!container.current) {
+      return
+    }
+
+    if (!doc) {
+      return
+    }
+
+    const source = doc.content
+    // Some styling to make sure the editor takes up the whole screen
+    const theme = EditorView.theme({
+      "&": { height: "100%", width: "100%" },
+    })
+    // This is where we actually fire up CodeMirror
+    const view = new EditorView({
+      doc: source,
+      parent: container.current,
+      extensions: [basicSetup, theme],
+    })
+
+    setEditorView(view)
+
+    return () => {
+      view.destroy()
+    }
+  }, [container, doc])
+  // highlight-end
+
+  if (!doc) {
+    return <div>Loading...</div>
+  }
+
+  // highlight-start
+  return <div ref={container} className="codemirror-editor" />
+  // highlight-end
+
+}
+```
+
+We'll also need to make a few changes to the styles. First clear out everything in `src/index.css` and make it look like this:
+
+```css title="src/index.css"
+#root {
+  height: 100vh;
+  width: 100vw;
+  margin: 0 auto;
+  background-color: white;
+}
+
+body {
+  padding: 0;
+  margin: 0;
+}
+```
+
+Then, make `src/App.css` look like this:
+
+```css 
+.codemirror-editor {
+  height: 100%;
+  width: 100%;
+}
+```
+
+Now, if you go to `localhost:5173` you should see a CodeMirror editor. At the moment editing it doesn't update the Automerge document though, so changes won't be refelected in other tabs and when you refresh you'll lose your changes. Let's fix that now.
+
+## Wiring up Automerge Repo
+
+Thus far the demo has been using the `useDocument` react hook, which gives you the Automerge document represented by the Automerge URL you pass it. The Automerge CodeMirror plugin however, requires a `DocHandle` because it needs to wire up event handlers of its own. This means we'll need to use the `useDocHandle` react hook.
+
+### Wiring up `useDocHandle`
+
+Update `src/App.tsx` like so:
+
+```typescript title="src/App.tsx"
+import { basicSetup } from "codemirror"
+import { EditorView } from "@codemirror/view"
+import "./App.css"
+// highlight-next-line
+import { useDocHandle, AutomergeUrl } from "@automerge/react"
+
+export interface MarkdownDocument {
+  content: string
+}
+
+function App({ docUrl }: { docUrl: AutomergeUrl }) {
+  // highlight-next-line 
+  // Use `useDocHandle` instead of `useDocument`
+  // highlight-next-line 
+  const handle = useDocHandle<MarkdownDocument>(docUrl)
+  const container = useRef<HTMLDivElement>(null)
+  const [editorView, setEditorView] = useState<EditorView>()
+
+  const container = useRef<HTMLDivElement>(null)
+  const [editorView, setEditorView] = useState<EditorView>()
+
+  useEffect(() => {
+    if (!container.current) {
+      return
+    }
+
+    // highlight-next-line
+    if (!handle) {
+      return
+    }
+
+  
+    // highlight-next-line
+    // Now that we have a handle, we access the document using
+    // highlight-next-line
+    // handle.doc()
+    // highlight-next-line
+    const source = handle.doc().content
+    const theme = EditorView.theme({
+      "&": { height: "100%", width: "100%" },
+    })
+    const view = new EditorView({
+      doc: source,
+      parent: container.current,
+      extensions: [basicSetup, theme],
+    })
+
+    setEditorView(view)
+
+    return () => {
+      view.destroy()
+    }
+  // highlight-next-line
+  }, [container, handle])
+
+  // highlight-next-line
+  if (!handle) {
+    return <div>Loading...</div>
+  }
+
+  return <div ref={container} className="codemirror-editor" />
+}
+```
+
+### Adding the Automerge CodeMirror plugin
+
+The final piece of the puzzle is the Automerge CodeMirror plugin. This takes care of turning updates to the CodeMirror document into `Automerge.splice` calls to update the content of the Automerge document. It also listens to `handle.on("change")` and converts any patches to the document into CodeMirror updates.
+
+First, install the plugin dependency:
+
+```bash
+npm install @automerge/automerge-codemirror
+```
+
+Now, we need to add the plugin to our codemirror editor
+
+```typescript filetitle="src/App.tsx"
+// ..
+// highlight-next-line
+import { automergeSyncPlugin } from "@automerge/automerge-codemirror"
+
+
+function App({ docUrl }: { docUrl: AutomergeUrl }) {
+  // ..
+
+  useEffect(() => {
+
+    // ..
+
+    const view = new EditorView({
+      doc: source,
+      parent: container.current,
+      extensions: [
+        basicSetup,
+        // highlight-start
+        automergeSyncPlugin({
+          handle,
+          path: ["content"],
+        }),
+        // highlight-end
+        theme
+      ],
+    })
+
+    // ..
+
+  }, [container, handle])
+
+  // ..
+
+  return <div ref={container} className="codemirror-editor" />
+
+}
+
+export default App
+```
+
+(Note that you may need to do a hard refresh here as codemirror does some instanceof checks which don't play nicely with Vite hot reloading).
+
+Now, we have a collaborative code editor! Check the next guide for how to turn this into a markdown editor with comments.
+
+
