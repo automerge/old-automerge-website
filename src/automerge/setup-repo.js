@@ -3,8 +3,8 @@ import {
 	IndexedDBStorageAdapter,
 	WebSocketClientAdapter,
 } from '@automerge/vanillajs'
-import * as Automerge from '@automerge/automerge/slim'
-import * as AutomergeRepo from '@automerge/automerge-repo/slim'
+import * as Automerge from '@automerge/automerge'
+import * as AutomergeRepo from '@automerge/automerge-repo'
 
 window.Automerge = Automerge
 window.AutomergeRepo = AutomergeRepo
