@@ -7,8 +7,9 @@ import styles from './index.module.css'
 import HomepageFeatures from '../components/HomepageFeatures'
 import '@fontsource/merriweather'
 import '@fontsource/overpass'
-import '../automerge/setup-repo.js'
+import { default as setupAutomerge } from '../automerge/setup-repo.js'
 
+setupAutomerge()
 
 function HomepageHeader() {
   const { siteConfig } = useDocusaurusContext()
