@@ -25,18 +25,18 @@ const config = {
   },
   themes: ["@docusaurus/theme-mermaid"],
   plugins: [
-	function() {
-		return {
-			name: "enable-wasm",
-			configureWebpack() {
-				return {
-					experiments: {
-						asyncWebAssembly: true
-					}
-				}
-			}
-		}
-	}
+  function() {
+    return {
+      name: "enable-wasm",
+      configureWebpack() {
+        return {
+          experiments: {
+            asyncWebAssembly: true
+          }
+        }
+      }
+    }
+  }
   ],
 
   presets: [
