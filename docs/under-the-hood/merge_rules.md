@@ -46,7 +46,7 @@ In the following then when we say "index $x$" that really means "the ID of the e
 - If `A` deletes element at index $i$ and `B` updates the element at $i$ then set the value of $i$ to the updated value from `B`
 - If `A` and `B` both delete element $i$ then remove it from the merged list
 
-Note that inserting a run of elements will maintain the insertion order of the replica which generated it. Imagine we have some list `[a, b]` and say `A` inserts the sequence `[d, e]` after `a` whilst `B` inserts `[f, g]` after `a`. Initially the set of operations are:
+Note that inserting a run of elements will maintain the insertion order of the replica which generated it. Imagine we have some list `[a, b]` and say `A` inserts the sequence `[d, e]` after `b` whilst `B` inserts `[f, g]` after `b`. Initially the set of operations are:
 
 | Operation ID | Reference element | Value |
 | ------------ | ----------------- | ----- |
