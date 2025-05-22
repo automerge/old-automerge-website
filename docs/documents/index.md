@@ -12,7 +12,8 @@ The types in automerge are:
   - IEEE 754 64 bit floating point numbers
   - Unsigned integers
   - Signed integers
-  - Booleans Strings
+  - Booleans
+  - Strings
   - Timestamps
   - Counters
   - Byte arrays
