@@ -161,7 +161,7 @@ import wasmUrl from "@automerge/automerge/automerge.wasm?url";
 import { next as Automerge } from "@automerge/automerge/slim";
 import { Repo } from "@automerge/automerge-repo/slim";
 
-await next.initializeWasm(wasmUrl)
+await Automerge.initializeWasm(wasmUrl)
 
 // Now we can get on with our lives
 
@@ -178,7 +178,7 @@ import { automergeWasmBase64 } from "@automerge/automerge/automerge.wasm.base64.
 import { next as Automerge } from "@automerge/automerge/slim";
 import { Repo } from `@automerge/automerge-repo/slim`;
 
-await next.initializeBase64Wasm(automergeWasmBase64)
+await Automerge.initializeBase64Wasm(automergeWasmBase64)
 
 // Now we can get on with our lives
 const repo = new Repo({..})
