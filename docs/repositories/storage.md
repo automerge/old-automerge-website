@@ -15,7 +15,7 @@ There are two built in storage adapters:
 [`@automerge/automerge-repo-storage-indexeddb`](https://www.npmjs.com/package/@automerge/automerge-repo-storage-indexeddb) stores data in an [`IndexedDB`](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API) in the browser.
 
 ```typescript
-import { IndexedDBStorageAdapter } from "@automerge/automerge-repo-storage-indexeddb`
+import { IndexedDBStorageAdapter } from "@automerge/automerge-repo-storage-indexeddb"
 
 const storage = new IndexedDBStorageAdapter()
 ```
