@@ -12,7 +12,7 @@
 
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.13.24/dist/katex.min.css" integrity="sha384-odtC+0UGzzFL/6PNoE8rX/SPcQDXBJ+uRepguP4QkPCm2LBxH3FA3y+fKSiJ+AmM" crossorigin="anonymous"><link rel="stylesheet" href="/assets/css/styles.bfe8948d.css">
-<script src="/assets/js/runtime~main.0923ee71.js" defer="defer"></script>
+<script src="/assets/js/runtime~main.d0f4d7e9.js" defer="defer"></script>
 <script src="/assets/js/main.9fb75db3.js" defer="defer"></script>
 </head>
 <body class="navigation-with-keyboard">
@@ -39,7 +39,7 @@
 <li>If <code>A</code> deletes element at index $i$ and <code>B</code> updates the element at $i$ then set the value of $i$ to the updated value from <code>B</code></li>
 <li>If <code>A</code> and <code>B</code> both delete element $i$ then remove it from the merged list</li>
 </ul>
-<p>Note that inserting a run of elements will maintain the insertion order of the replica which generated it. Imagine we have some list <code>[a, b]</code> and say <code>A</code> inserts the sequence <code>[d, e]</code> after <code>a</code> whilst <code>B</code> inserts <code>[f, g]</code> after <code>a</code>. Initially the set of operations are:</p>
+<p>Note that inserting a run of elements will maintain the insertion order of the replica which generated it. Imagine we have some list <code>[a, b]</code> and say <code>A</code> inserts the sequence <code>[d, e]</code> after <code>b</code> whilst <code>B</code> inserts <code>[f, g]</code> after <code>b</code>. Initially the set of operations are:</p>
 <table><thead><tr><th>Operation ID</th><th>Reference element</th><th>Value</th></tr></thead><tbody><tr><td>A</td><td>None</td><td><code>a</code></td></tr><tr><td>B</td><td><code>A</code></td><td><code>b</code></td></tr></tbody></table>
 <p>The operations after inserting on <code>A</code> are</p>
 <table><thead><tr><th>Operation ID</th><th>Reference element</th><th>Value</th></tr></thead><tbody><tr><td>A</td><td>None</td><td><code>a</code></td></tr><tr><td>B</td><td><code>A</code></td><td><code>b</code></td></tr><tr><td>D</td><td><code>B</code></td><td><code>d</code></td></tr><tr><td>E</td><td><code>D</code></td><td><code>e</code></td></tr></tbody></table>
