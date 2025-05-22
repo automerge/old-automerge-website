@@ -76,7 +76,7 @@ const right = new Repo({
 
 ## BroadcastChannel
 
-[`@automerge/automerge-repo-network-broadcastchannel`](https://automerge.org/automerge-repo/modules/_automerge_automerge_repo_network_broadcastchannel.html) is a `NetworkAdapter` for commuicating between processes in the same browser using a [`BroadcastChannel`](https://developer.mozilla.org/en-US/docs/Web/API/BroadcastChannel). This will in general be quite inefficient because the sync protocol is point-to-point so even though `BroadcastChannel` is a _broadcast_ channel, we still have to duplicate each message for every peer in the channel. It's better to use `MessageChannel` if you can, but `BroadcastChannel` is good in a pinch.
+[`@automerge/automerge-repo-network-broadcastchannel`](https://automerge.org/automerge-repo/modules/_automerge_automerge_repo_network_broadcastchannel.html) is a `NetworkAdapter` for communicating between processes in the same browser using a [`BroadcastChannel`](https://developer.mozilla.org/en-US/docs/Web/API/BroadcastChannel). This will in general be quite inefficient because the sync protocol is point-to-point so even though `BroadcastChannel` is a _broadcast_ channel, we still have to duplicate each message for every peer in the channel. It's better to use `MessageChannel` if you can, but `BroadcastChannel` is good in a pinch.
 
 ```typescript
 import { BroadcastChannelNetworkAdapter } from "@automerge/automerge-repo-network-broadcastchannel";
