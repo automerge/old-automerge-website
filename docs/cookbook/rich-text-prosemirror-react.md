@@ -6,7 +6,7 @@ sidebar_position: 2
 
 Automerge supports rich text editing on top of [ProseMirror](https://prosemirror.net/). This guide will show you how to set up a simple collaborative rich text editor in React using Automerge and ProseMirror.
 
-All the code here can be found at https://github.com/automerge/automerge-prosemirror/examples/react
+All the code here can be found at https://github.com/automerge/automerge-prosemirror/tree/main/examples/react
 
 First, create a an example vite app using the `@automerge/vite-app` template. This will give you a basic React app with the Automerge dependencies already installed.
 
