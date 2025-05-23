@@ -36,7 +36,18 @@ const config = {
         }
       }
     }
-  }
+    },
+    [
+      "@docusaurus/plugin-client-redirects",
+      {
+        redirects: [
+          { 
+            from: "/blog/2025/05/13/automerge-repoo-2/",
+            to: "/blog/2025/05/13/automerge-repo-2/",
+          }
+        ]
+      }
+    ]
   ],
 
   presets: [
