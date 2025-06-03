@@ -35,7 +35,7 @@ To deliver this new version, lab members Alex Good and Orion Henry teamed up wit
 
 ## Documenting Automerge
 
-With Automerge 2.0 we've made a big investment in improving documentation. In addition to [sample code](https://github.com/automerge/automerge-rs/tree/main/javascript/examples), we now have a [quick-start guide](https://automerge.org/docs/quickstart/) that supports both Vite and create-react-app, as well as [internals](https://automerge.org/docs/how-it-works/backend/) documentation, [file format](https://alexjg.github.io/automerge-storage-docs/) and [sync protocol](https://automerge.org/docs/how-it-works/sync/) documentation. This work was led by lab alumnus Rae McKelvey and we hope it helps make getting started with Automerge much easier. Please let us know if there are other topics or areas you'd like to see covered!
+With Automerge 2.0 we've made a big investment in improving documentation. In addition to [sample code](https://github.com/automerge/automerge-rs/tree/main/javascript/examples), we now have a [quick-start guide](https://automerge.org/docs/tutorial/) that supports both Vite and create-react-app, as well as [internals](https://automerge.org/docs/how-it-works/backend/) documentation, [file format](https://alexjg.github.io/automerge-storage-docs/) and [sync protocol](https://automerge.org/docs/how-it-works/sync/) documentation. This work was led by lab alumnus Rae McKelvey and we hope it helps make getting started with Automerge much easier. Please let us know if there are other topics or areas you'd like to see covered!
 
 ## Supporting Automerge
 

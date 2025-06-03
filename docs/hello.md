@@ -41,7 +41,7 @@ you to edit files and commit changes offline.
 - **Automatic merging**. Automerge is a _Conflict-Free Replicated Data Type_ ([CRDT](https://crdt.tech/)),
   which allows concurrent changes on different devices to be merged automatically without requiring any
   central server. The conflict resolution approach is described
-  [in the documentation](/docs/documents/conflicts/).
+  [in the documentation](/docs/reference/documents/conflicts/).
 - **Portable**. The [JavaScript implementation](https://github.com/automerge/automerge) of
   Automerge is compatible with Node.js, [Electron](https://electron.atom.io/), and modern browsers.
   The [Rust implementation](https://github.com/automerge/automerge-rs) compiles to WebAssembly

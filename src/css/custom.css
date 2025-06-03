@@ -4,11 +4,10 @@
  * work well for content-centric websites.
  */
 
-
 :root {
   --ifm-font-size-base: 1rem;
   --ifm-code-font-size: 0.9em;
-  --ifm-font-family-base: 'Merriweather', serif;
+  --ifm-font-family-base: "Merriweather", serif;
   --ifm-heading-font-family: Overpass, sans-serif;
   --ifm-color-primary: #fbcc34;
   --ifm-color-primary-dark: #fac516;
@@ -30,16 +29,15 @@
   --docusaurus-highlighted-code-line-bg: rgb(226, 231, 244);
   --ifm-tabs-color-active: var(--ifm-color-content);
   --ifm-tabs-color-active-border: var(--ifm-color-primary);
-
 }
 
-:root[data-theme='dark'] {
+:root[data-theme="dark"] {
   --ifm-color-content: #e3e3e3;
   --ifm-hero-background-color: #2e2e2e;
   --docusaurus-highlighted-code-line-bg: rgb(100, 100, 100);
 }
 
-html[data-theme='dark'] .docusaurus-highlight-code-line {
+html[data-theme="dark"] .docusaurus-highlight-code-line {
   /* Color which works with dark mode syntax highlighting theme */
   --docusaurus-highlighted-code-line-bg: rgb(100, 100, 100);
 }
@@ -120,9 +118,10 @@ article div {
 
 h1,
 h2,
-h3 {}
+h3 {
+}
 
-.hero>.container {
+.hero > .container {
   max-width: 700px;
 }
 
@@ -131,4 +130,8 @@ code {
   padding: 0 0.3rem;
   margin: 0 0.1rem;
   vertical-align: baseline;
+}
+
+video {
+  max-width: 100%;
 }
