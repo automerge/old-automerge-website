@@ -1,0 +1,91 @@
+---
+sidebar_position: 1
+title: "Account-Based Document Management"
+---
+
+import { jsx } from "react/jsx-runtime";
+import Admonition from "@theme/Admonition";
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+import Figure from "../../components/Figure";
+
+import accountApp from "../../static/img/tutorials/account-based/account-app.svg";
+
+In this tutorial, you'll build on the concepts from the [Quickstart Guide](/docs/quickstart/intro) to create a more sophisticated document management system. You'll learn how to:
+
+- Create and manage a persistent user account document
+- Store and retrieve document references
+- Build a document listing interface
+- Implement document switching
+- Handle document sharing and collaboration
+
+<Figure
+  src={accountApp}
+  alt="Account-based task list app"
+  caption="The account-based task list app showing the document list sidebar and task editor"
+/>
+
+## Setup
+
+<Admonition type="info">
+
+This tutorial builds on the code from the [Quickstart Guide](/docs/quickstart/intro). Make sure you've completed that first!
+
+</Admonition>
+
+To get started:
+
+1. Create a new branch from your quickstart project
+2. Install any additional dependencies
+3. Start the development server
+
+<Tabs>
+<TabItem value="npm" label="npm">
+
+```bash
+$ git checkout -b account-based
+$ npm install
+$ npm run dev
+```
+
+</TabItem>
+<TabItem value="yarn" label="yarn">
+
+```bash
+$ git checkout -b account-based
+$ yarn
+$ yarn dev
+```
+
+</TabItem>
+<TabItem value="pnpm" label="pnpm">
+
+```bash
+$ git checkout -b account-based
+$ pnpm install
+$ pnpm dev
+```
+
+</TabItem>
+</Tabs>
+
+## What We'll Build
+
+You might have noticed that if you lose the URL of a document in the quickstart, it's gone forever. This is fine for testing and demos, but obviously no good for a real application.
+
+Automerge is built around the document as a building block for your application, and we use AutomergeUrl links to connect those documents together. We've already created one kind of document, a task list, and now we're going to build on that foundation by collecting your task lists into something like a folder to keep them organized.
+
+This is going to give us a chance to see a few patterns in action: linking between documents with URLs, working with multiple documents at once, and using a single document as the "entry point" for your application.
+
+You can think of the "entry point" as being akin to a user's account. By synchronizing that document between their devices, a user can get access to their documents from multiple browsers or devices, but be careful: until we implement some kind of security on the sync server, a user's privacy relies on their not sharing that "root" document ID with anyone else.
+
+Here's the plan. We'll are going to:
+
+1. Create a new "listing" document which links to all the documents the user has opened.
+2. Register documents we open or create in that listing (if we don't have them already.)
+3. Store that document's ID in localStorage in a well-known key to check during startup.
+4. Create a simple UI for copying the account document between browsers, creating rudimentary "accounts".
+
+If this feels different to you from how a traditional database works, that's normal. With Automerge, building an application will feel more like linking together a web of documents than querying a database.
+
+[Next: Document Listing →](/docs/tutorials/account-based/account)

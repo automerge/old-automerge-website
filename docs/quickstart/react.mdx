@@ -1,0 +1,145 @@
+---
+sidebar_position: 4
+title: "React Integration"
+---
+
+import { jsx } from "react/jsx-runtime";
+import Admonition from "@theme/Admonition";
+import Exercise from "../components/Exercise";
+import Solution from "../components/Solution";
+
+## Working with Documents in React
+
+Once you have the URL of the document you want to work with, you can access & modify it from your components with the `useDocument` hook.
+
+Similar to React's `useState`, `useDocument` returns a two-item array with a reactive `doc` value representing the document's current contents and a `changeDoc` function which can be used to update that value.
+
+The `doc` object will look and feel just like a Plain Old Javascript Object, because it is one. Just like with `useState`, changes directly to the value won't behave the way you expect. Use the `changeDoc` callback to update the document, recording your changes, and both saving and replicating them.
+
+<Exercise>
+
+#### Reading a document
+
+Let's look at reading the contents of a document. Until the document loads, it's undefined. After that, it will become a POJO.
+
+```tsx title="src/App.tsx"
+// ...
+import { useState } from "react";
+// highlight-next-line
+import { useDocument, type AutomergeUrl } from "@automerge/react";
+
+// ...
+
+// highlight-start
+function App({ docUrl }: { docUrl: AutomergeUrl }) {
+  const [doc, changeDoc] = useDocument<TaskList>(docUrl);
+
+  // Until the document loads, useDocument returns undefined.
+  if (!doc) return <div>Loading...</div>;
+
+  // Now we can get the tasks out of the document and render them below.
+  const { tasks } = doc;
+  // highlight-end
+
+  // ...
+}
+
+export default App;
+```
+
+</Exercise>
+
+### Editing a document
+
+The Automerge equivalent of `setState(state => state + 1)` is `changeDoc(doc => doc.state += 1)`. `changeDoc` is the only way to update a document and will record any mutations you make in your callback to the `doc` object.
+
+There's one important difference between your usual JS style and working with an Automerge document: you will generally want to avoid immutable style.
+
+It's idiomatic in JS to use syntax like spread operators to update a document, but if you do this, you'll make merging with other users ineffective. That's because Automerge doesn't second-guess your intention: if you replace the whole array, we'll trust that's what you meant to do! Instead, you'll want to only update the data you actually want to change.
+
+We've got three places we edit the document: creating a new item, toggling completion, and editing the item's text.
+
+Here, we replace the React `setState` style array spread syntax with an "unshift" call. Remember, Automerge does what you ask, so if you replace the complete array, your changes won't merge well with other users'.
+
+```tsx
+  <button
+    type="button"
+    onClick={() => {
+      changeDoc((d) =>
+        d.tasks.unshift({
+          title: "",
+          done: false,
+        })
+      );
+    }}
+  >
+```
+
+Updating the task's state is similar, but we use the index of the item to make sure we target the right item. If we weren't iterating over the array already, we could use `.find()` to determine the index of the item we need.
+
+```tsx
+  <div className="task" key={index}>
+    <input
+      type="checkbox"
+      checked={done}
+      onChange={() =>
+        changeDoc((d) => {
+          d.tasks[index].done = !d.tasks[index].done;
+        })
+      }
+    />
+```
+
+### Updating text
+
+Finally, we're going to handle text a little differently in this example. Following the same principle we discuss above, if you reassign a text field in an Automerge document, we will replace the whole string. This might be what you want in some cases, but often, you'll want to support collaborative editing. This can be particularly important on large documents.
+
+There are two approaches you can use here. The simplest approach is to use the utility function `updateText`. It compares the before-and-after values of a string and applies a minimum edit script to combine the two. Typically for a more advanced integration with a text editor, you would use the `Automerge.splice()` function as part of an event handler, or -- ideally -- you'd just use an existing text-editor plugin like `@automerge/codemirror`.
+
+First, we'll add `updateText` to our imports from the library.
+
+```tsx
+import { updateText } from "@automerge/react";
+```
+
+Next, we replace the text updating function with one that uses it instead of just replacing the value completely.
+
+```tsx
+<input
+  type="text"
+  placeholder="What needs doing?"
+  value={title || ""}
+  onChange={(e) =>
+    changeDoc((doc) =>
+      updateText(
+        doc, // the document to update
+        ["tasks", 0, "title"], // array representing the path to the text to update
+        e.target.value
+      )
+    )
+  }
+  style={done ? { textDecoration: "line-through" } : {}}
+/>
+```
+
+## Checking your work
+
+Now we've wired up our application to an Automerge document but we're not holding onto the URL for that document
+anywhere so every time we refresh the page we'll lose what we've done.
+
+In the next step, we'll deal with this problem, but for now let's validate that things are working by checking our work using repo.find() in another tab.
+
+### Make some changes
+
+Interact with your document a little. Make a TODO item, tick a box, edit a description.
+If you've followed the steps above, you'll have a console.log() with the URL of your document.
+
+### Validate that changes are happening
+
+Open a new tab and call `(await repo.find('automerge:yourdocumentIdHere')).doc()`; you should see your document arrive.
+
+## Next steps
+
+Now that we're editing our automerge document, we need a way of telling the application what to load. Continue to the next step!
+
+[← Previous: Document Management](/docs/quickstart/documents) | [Next: Network Sync →](/docs/quickstart/network-sync)

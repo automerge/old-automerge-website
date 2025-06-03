@@ -1,0 +1,382 @@
+---
+sidebar_position: 2
+title: "Document Listing"
+---
+
+import { jsx } from "react/jsx-runtime";
+import Admonition from "@theme/Admonition";
+import Exercise from "../../components/Exercise";
+import Solution from "../../components/Solution";
+
+## Document Listing
+
+First things first, we're going to want to create a listing document to hold our data. For this example application, we'll use the simplest possible document: just an array of AutomergeUrls that are each one of the Task List documents we created in the last stage of the tutorial.
+
+An AutomergeUrl is a globally unique identifier for a document: no other document in the world will ever have the same URL, and the URL includes a few extra bits of checksum data to catch mistakes in transcription. (The URL can also include the specific "commits" that represent a point in time but that's for a later lesson.) The format is simple: `automerge:${base58EncodedDocumentId}`.
+
+One of the interesting puzzles of designing with Automerge (and similar systems that have self-identifying documents which use content addressing or public key naming) is how to avoid putting these IDs in front of users as much as possible while still taking advantage of their unique properties. A long URL full of random characters is ugly, but being able to share a link to a document is handy. We'll leave this puzzle with you to think about.
+
+Anyway, our document listing schema looks like this:
+
+```typescript
+interface DocumentList {
+  documents: AutomergeUrl[];
+}
+```
+
+In the next step, we'll handle persisting the document listing, but for the moment as we work we'll just fake it by creating a new one on each load.
+
+Let's create a component to display the list of documents and handle document switching:
+
+<Exercise>
+
+Create a new file `src/DocumentList.tsx`:
+
+```typescript
+import React from "react"
+import { useRepo, useDocument } from "@automerge/react"
+import { RootDocument } from "./root"
+
+export interface DocumentList {
+  documents: AutomergeUrl[];
+}
+
+export const DocumentList: React.FC<{
+  docUrl: AutomergeUrl,
+  onSelectDocument: (AutomergeUrl) => void
+}> = ({ docUrl }) => {
+  const repo = useRepo()
+  const [doc, changeDoc] = useDocument<DocumentList>(docUrl) // ALEX: should we use suspense?
+  const [currentDoc, selectDoc] = useState<AutomergeUrl>(doc?.documents[0])
+
+  const handleNewDocument = () => {
+    // Create a new empty task list
+    const taskListHandle = repo.create({tasks: []})
+
+    // Add it to the listing, here
+    changeDoc((doc: DocumentList) => {
+      doc.documents.push(taskListHandle.url)
+    })
+
+    // Select the new document
+    onSelectDocument(docId)
+  }
+
+  if (!root) {
+    return <div>Loading...</div>
+  }
+
+  return (
+    <div className="document-list">
+      <button onClick={handleNewDocument}>New Task List</button>
+      <div className="documents">
+        {root.documents.map((docUrl) => (
+          <div
+            key={docUrl}
+            className="document-item"
+            onClick={() => onSelectDocument(docUrl)}
+          >
+            <DocumentTitle docUrl={docUrl} />
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// Component to display document title
+const DocumentTitle: React.FC<{ docUrl: string }> = ({ docUrl }) => {
+  const [doc] = useDocument(docUrl)
+
+  if (!doc) {
+    return <div>Loading...</div>
+  }
+
+  // Get the first task's title or use a default
+  const title = doc.title || "Untitled Task List"
+  return <div>{title}</div>
+}
+```
+
+</Exercise>
+
+## Syncing Across Devices
+
+TODO: make this a separate step
+
+To access your documents from another browser or device, you'll need to share your root document ID. Let's add a component to handle this:
+
+<Exercise>
+
+Create a new file `src/SyncDialog.tsx`:
+
+```typescript
+import React, { useState } from "react"
+
+export const SyncDialog: React.FC<{
+  rootId: string
+}> = ({ rootId }) => {
+  const [isOpen, setIsOpen] = useState(false)
+  const [inputId, setInputId] = useState("")
+
+  const handleSync = () => {
+    if (inputId) {
+      // Store the provided root document ID
+      localStorage.setItem("root-doc-id", inputId)
+      // Reload the page to initialize with the new root document
+      window.location.reload()
+    }
+  }
+
+  return (
+    <div className="sync-dialog">
+      <button onClick={() => setIsOpen(true)}>Sync to Another Device</button>
+
+      {isOpen && (
+        <div className="dialog">
+          <h3>Sync Your Documents</h3>
+          <p>To access your documents on another device:</p>
+          <ol>
+            <li>Copy this ID: <code>{rootId}</code></li>
+            <li>On the other device, paste the ID below</li>
+            <li>Click "Sync" to load your documents</li>
+          </ol>
+          <input
+            type="text"
+            value={inputId}
+            onChange={(e) => setInputId(e.target.value)}
+            placeholder="Paste root document ID"
+          />
+          <div className="buttons">
+            <button onClick={handleSync}>Sync</button>
+            <button onClick={() => setIsOpen(false)}>Cancel</button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+```
+
+</Exercise>
+
+## Document Editor Component
+
+Now let's create a component for editing the currently selected document:
+
+<Exercise>
+
+Create a new file `src/DocumentEditor.tsx`:
+
+```typescript
+import React from "react"
+import { useDocument } from "@automerge/automerge-repo-react-hooks"
+
+export const DocumentEditor: React.FC<{
+  docUrl: string
+}> = ({ docUrl }) => {
+  const [doc, changeDoc] = useDocument(docUrl)
+
+  if (!doc) {
+    return <div>Loading...</div>
+  }
+
+  const addTask = () => {
+    changeDoc((doc: any) => {
+      if (!doc.tasks) {
+        doc.tasks = []
+      }
+      doc.tasks.push({
+        title: "New Task",
+        done: false
+      })
+    })
+  }
+
+  const toggleTask = (index: number) => {
+    changeDoc((doc: any) => {
+      doc.tasks[index].done = !doc.tasks[index].done
+    })
+  }
+
+  const updateTaskTitle = (index: number, title: string) => {
+    changeDoc((doc: any) => {
+      doc.tasks[index].title = title
+    })
+  }
+
+  return (
+    <div className="document-editor">
+      <div className="tasks">
+        {doc.tasks?.map((task: any, index: number) => (
+          <div key={index} className="task">
+            <input
+              type="checkbox"
+              checked={task.done}
+              onChange={() => toggleTask(index)}
+            />
+            <input
+              type="text"
+              value={task.title}
+              onChange={(e) => updateTaskTitle(index, e.target.value)}
+            />
+          </div>
+        ))}
+      </div>
+      <button onClick={addTask}>Add Task</button>
+    </div>
+  )
+}
+```
+
+</Exercise>
+
+## Main App Component
+
+Let's update the main App component to use our new components:
+
+<Exercise>
+
+Update `src/App.tsx`:
+
+```typescript
+import React, { useState } from "react"
+import { Repo } from "@automerge/automerge-repo"
+import { DocumentList } from "./DocumentList"
+import { DocumentEditor } from "./DocumentEditor"
+import { SyncDialog } from "./SyncDialog"
+
+export const App: React.FC<{
+  repo: Repo
+  rootId: string
+}> = ({ repo, rootId }) => {
+  const [selectedDocUrl, setSelectedDocUrl] = useState<string | null>(null)
+
+  return (
+    <div className="app">
+      <div className="sidebar">
+        <DocumentList rootId={rootId} onSelectDocument={setSelectedDocUrl} />
+        <SyncDialog rootId={rootId} />
+      </div>
+      <div className="main">
+        {selectedDocUrl ? (
+          <DocumentEditor docUrl={selectedDocUrl} />
+        ) : (
+          <div>Select or create a document to get started</div>
+        )}
+      </div>
+    </div>
+  )
+}
+```
+
+</Exercise>
+
+## Styling
+
+Let's add some basic styling to make the app look better:
+
+<Exercise>
+
+Update `src/index.css`:
+
+```css
+.app {
+  display: flex;
+  height: 100vh;
+}
+
+.sidebar {
+  width: 250px;
+  padding: 1rem;
+  border-right: 1px solid #eee;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.main {
+  flex: 1;
+  padding: 1rem;
+}
+
+.document-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.document-item {
+  padding: 0.5rem;
+  border: 1px solid #eee;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.document-item:hover {
+  background: #f5f5f5;
+}
+
+.document-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.task {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.sync-dialog .dialog {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  padding: 1rem;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+}
+
+.sync-dialog .buttons {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+  margin-top: 1rem;
+}
+
+button {
+  padding: 0.5rem 1rem;
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #0056b3;
+}
+
+input[type="text"] {
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  flex: 1;
+}
+```
+
+</Exercise>
+
+Now you have a fully functional document management system! You can:
+
+1. Create new task lists
+2. Switch between task lists
+3. Edit tasks in each list
+4. See changes sync across users who have access to the same documents
+5. Access your documents from any browser or device by sharing your root document ID
+
+[← Previous: Account Management](/docs/tutorials/account-based/account) | [Next: Document Sharing →](/docs/tutorials/account-based/sharing)

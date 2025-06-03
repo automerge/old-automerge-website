@@ -1,0 +1,195 @@
+---
+sidebar_position: 3
+title: "Document List"
+---
+
+import { jsx } from "react/jsx-runtime";
+import Admonition from "@theme/Admonition";
+import Exercise from "../../components/Exercise";
+import Solution from "../../components/Solution";
+
+## Keeping Track Of the Document List
+
+Right now, we're losing track of the document list every time we refresh the application. Keeping track of it is straightforward -- we'll just store the AutomergeUrl somewhere handy, like localStorage. This is the only data we'll store outside of our Repo. Everything else will come from Automerge itself.
+
+Let's create a new file `src/listing.ts` to handle the root document management:
+
+<Exercise>
+
+Create the root document management functions:
+
+```typescript
+import { Repo } from "@automerge/automerge-repo";
+
+const ROOT_DOC_ID_KEY = "root-doc-id";
+
+export interface DocumentList {
+  documents: AutomergeUrl[];
+}
+
+export const getOrCreateRoot = (repo: Repo): AutomergeUrl => {
+  // Check if we already have a root document
+  const existingId = localStorage.getItem(ROOT_DOC_ID_KEY);
+  if (existingId) {
+    return existingId;
+  }
+
+  // Otherwise create one and (synchronously) store it
+  const root = repo.create({ documents: [] });
+  localStorage.setItem(ROOT_DOC_ID_KEY, rootId);
+  return root.url;
+};
+```
+
+</Exercise>
+
+<Solution>
+
+This code:
+
+1. Defines the `RootDocument` interface with a list of document URLs
+2. Uses `localStorage` to persist the root document ID
+3. Provides a function to get/create the root document
+
+</Solution>
+
+## Using the Root Document
+
+Let's update our main app to use the root document:
+
+<Exercise>
+
+Update `src/main.tsx` to initialize the root document:
+
+```typescript
+import { Repo } from "@automerge/automerge-repo";
+import { BroadcastChannelNetworkAdapter } from "@automerge/automerge-repo-network-broadcastchannel";
+import { IndexedDBStorageAdapter } from "@automerge/automerge-repo-storage-indexeddb";
+import { RepoContext } from "@automerge/automerge-repo-react-hooks";
+import { getOrCreateRoot } from "./root";
+
+// Create the repo
+const repo = new Repo({
+  network: [new BroadcastChannelNetworkAdapter()],
+  storage: new IndexedDBStorageAdapter(),
+});
+
+// Initialize the root document
+const rootId = getOrCreateRoot(repo);
+
+// Create the root element
+const rootElement = document.createElement("div");
+rootElement.id = "root";
+document.body.appendChild(rootElement);
+
+// Render the app
+const root = ReactDOM.createRoot(rootElement);
+root.render(
+  <React.StrictMode>
+    <RepoContext.Provider value={repo}>
+      <App rootId={rootId} />
+    </RepoContext.Provider>
+  </React.StrictMode>
+);
+```
+
+To validate that your code is working:
+
+1. Open your browser's developer tools (F12 or right-click and select "Inspect")
+2. Go to the "Application" tab
+3. In the left sidebar, under "Storage", click on "Local Storage"
+4. Look for the `root-doc-id` key - it should contain a URL starting with `automerge:`
+5. You can also add this temporary code to your `main.tsx` to verify the root document:
+
+```typescript
+// Add this after creating the root document
+const root = repo.find(rootId);
+console.log("Root document:", root);
+```
+
+You should see a console log showing the root document with an empty `documents` array.
+
+</Exercise>
+
+## Registering Documents
+
+Now that we have our root document set up, let's create a function to register new documents in it. This will be used whenever we create or open a document:
+
+<Exercise>
+
+Add a function to register documents in `src/root.ts`:
+
+```typescript
+export const registerDocument = (
+  repo: Repo,
+  rootId: AutomergeUrl,
+  docId: AutomergeUrl
+) => {
+  const root = repo.find(rootId);
+  root.change((doc: RootDocument) => {
+    if (!doc.documents.includes(docId)) {
+      doc.documents.push(docId);
+    }
+  });
+};
+```
+
+Let's wire this up in our main app. First, create a new file `src/App.tsx`:
+
+```typescript
+import React, { useState } from "react";
+import { useRepo } from "@automerge/automerge-repo-react-hooks";
+import { registerDocument } from "./root";
+
+export const App: React.FC<{
+  rootId: AutomergeUrl;
+}> = ({ rootId }) => {
+  const repo = useRepo();
+  const [selectedDocId, setSelectedDocId] = useState<AutomergeUrl | null>(null);
+
+  const handleCreateDocument = () => {
+    // Create a new task list document
+    const doc = repo.create({ tasks: [] });
+    // Register it in the root document
+    registerDocument(repo, rootId, doc.url);
+    // Select the new document
+    setSelectedDocId(doc.url);
+  };
+
+  return (
+    <div className="app">
+      <div className="sidebar">
+        <button onClick={handleCreateDocument}>New Task List</button>
+      </div>
+      <div className="main">
+        {selectedDocId ? (
+          <div>Selected document: {selectedDocId}</div>
+        ) : (
+          <div>Click "New Task List" to create a document</div>
+        )}
+      </div>
+    </div>
+  );
+};
+```
+
+To test this:
+
+1. Click the "New Task List" button
+2. Open the browser console
+3. Add this code to check the root document:
+
+```typescript
+const root = repo.find(rootId);
+console.log("Root document:", root);
+```
+
+You should see the root document now contains the task list's URL in its `documents` array.
+
+</Exercise>
+
+Now we have the foundation for our document management system. The root document serves as your personal storage space, keeping track of all documents you've opened. This makes it easy to find and access your documents again, even after closing the browser or switching devices.
+
+Next, we're going to start actually using it by recording the documents we open into it.
+
+[Next: Document Listing →](/docs/tutorials/account-based/listing)

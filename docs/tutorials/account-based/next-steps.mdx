@@ -1,0 +1,102 @@
+---
+sidebar_position: 5
+title: "Next Steps"
+---
+
+import { jsx } from "react/jsx-runtime";
+import Admonition from "@theme/Admonition";
+
+## Congratulations!
+
+QUICKSTART:
+clone this and you're off
+
+- clonable empty projects for
+  react
+  (later)
+  vanilla
+  svelte
+  (someday)
+  solid
+  vue
+  angular
+  etc
+
+TUTORIAL:
+without-automerge todo through account-based sharing
+ideally eventually we have tutorials (or at least example repos) for each framework
+
+PVHNOTE:
+next steps
+switch to hub&spoke for efficiency with serviceworker <-- broadcastchannel is inefficient & so is many network cxns / storage
+load images from serviceworker
+
+try one of the editor integrations: codemirror/prosemirror/tldraw
+
+run your own sync server (with some basic oauth) [SOMEDAY]
+
+advanced tutorial line:
+working with versioning: time-travel / conflicts / diffs / branches
+
+You've built a sophisticated document management system with Automerge that supports:
+
+- Account persistence
+- Document listing and switching
+- Real-time collaboration
+- Document sharing
+- Offline support
+
+## Production Considerations
+
+Before deploying to production, consider these improvements:
+
+1. **Security**
+
+   - Run your own sync server
+   - Implement proper authentication
+   - Add document access control
+   - Encrypt sensitive data
+
+2. **User Experience**
+
+   - Add document titles and descriptions
+   - Implement document search
+   - Add document categories or tags
+   - Show document activity status
+   - Add user presence indicators
+
+3. **Performance**
+
+   - Implement document pagination
+   - Add document archiving
+   - Optimize sync frequency
+   - Add loading states and error handling
+
+4. **Features**
+   - Add document comments
+   - Implement document versioning
+   - Add document export/import
+   - Add user profiles and avatars
+
+## Further Learning
+
+If you're hungry for more:
+
+- Look at the [Cookbook](/docs/cookbook/modeling-data/) section for tips on how to model your app's data in Automerge
+- Dive deeper into how Automerge [stores](https://automerge.org/docs/under-the-hood/storage/) and [merges](https://automerge.org/docs/under-the-hood/merge_rules/) documents
+- Explore advanced features like:
+  - [Rich Text Editing](/docs/cookbook/rich-text-prosemirror-vanilla/)
+  - [Custom Network Adapters](/docs/repositories/networking/)
+  - [Custom Storage Adapters](/docs/repositories/storage/)
+
+## Community
+
+Join the [Discord](https://discord.gg/zKGe4DCfgR) to:
+
+- Ask questions
+- Show off your Automerge apps
+- Connect with the Automerge team & community
+- Get help with implementation
+- Share your experiences
+
+[← Previous: Sharing & Collaboration](/docs/tutorials/account-based/sharing)

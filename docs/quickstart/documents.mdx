@@ -1,0 +1,129 @@
+---
+sidebar_position: 5
+title: "Document Management"
+---
+
+import { jsx } from "react/jsx-runtime";
+import Admonition from "@theme/Admonition";
+import Exercise from "../components/Exercise";
+import Solution from "../components/Solution";
+
+## Link-based Document Sharing
+
+TODO rewrite this copy
+
+A `Repo` isn't very useful until it has some documents in it! To create a new document, pass its initial value to `repo.create()`, which accepts a type parameter representing your data:
+
+```ts
+const listHandle = repo.create<TaskList>({
+  tasks: [
+    {
+      title: "Learn Automerge",
+      done: false,
+    },
+  ],
+});
+```
+
+The object returned from `repo.create()` is a [`DocHandle`](/docs/repositories/dochandles/), which provides an interface for working with the document.
+
+A `DocHandle`'s `.url` property provides the document's unique identifier:
+
+```ts
+listHandle.url; // automerge:37Qr33Ub26dnS2txNCjEJDC37KFT
+```
+
+To retrieve a handle for a document that's already in your repo, you can pass its document URL to `repo.find()`:
+
+```ts
+const existingDocHandle = repo.find(existingDoc.url);
+```
+
+It's common practice to pass document URLs around as URL hashes. For example:
+
+`http://my-automerge-app.com/automerge-repo-quickstart/#automerge:37Qr33Ub26dnS2txNCjEJDC37KFT`
+
+The `automerge-repo` package exports an `isValidAutomergeUrl()` function that you can use to determine if a given hash is a valid Document URL.
+
+In your task list app, you'll check the page's hash and:
+
+- retrieve the existing task list document if it exists, or
+- create a new document if we don't have one already.
+
+<Exercise>
+
+### Quick & Dirty URL-based sharing
+
+Now that we have automerge added to our project and a Repo available, we're going to add a simple URL-based sharing mechanism. You might recognize this approach to link sharing from other projects. Going to the page with an empty path creates a new document and puts the ID of that document into the location's hash fragment. If you open a link that includes a valid document in the hash, we open it.
+
+This is the last bit of our setup, and while this is very convenient for prototyping and testing, it isn't the right approach for a production application. We'll discuss what we'd recommend for a production application below.
+
+```tsx title="src/main.tsx"
+import React from "react";
+import ReactDOM from "react-dom/client";
+import App from "./App.tsx";
+import "./index.css";
+import {
+  Repo,
+  BroadcastChannelNetworkAdapter,
+  IndexedDBStorageAdapter,
+  RepoContext,
+  // highlight-next-line
+  isValidAutomergeUrl,
+} from "@automerge/react";
+
+// highlight-next-line
+import type { TaskList } from "./App.tsx";
+
+const repo = new Repo({
+  storage: new IndexedDBStorageAdapter(),
+  network: [new BroadcastChannelNetworkAdapter()],
+});
+
+// highlight-start
+// Check the URL for a document to load
+const locationHash = document.location.hash.substring(1);
+
+// Depending if we have an AutomergeUrl, either find or create the document
+let handle;
+if (isValidAutomergeUrl(locationHash)) {
+  handle = await repo.find(locationHash);
+} else {
+  handle = repo.create<TaskList>({
+    tasks: [],
+  });
+  // Set the location hash to the new document we just made.
+  document.location.hash = handle.url;
+}
+
+// highlight-end
+
+ReactDOM.createRoot(document.getElementById("root")!).render(
+  <React.StrictMode>
+    <RepoContext.Provider value={repo}>
+      {/* highlight-next-line */}
+      <App docUrl={handle.url} />
+    </RepoContext.Provider>
+  </React.StrictMode>
+);
+```
+
+</Exercise>
+
+### Document Lifecycle
+
+Understanding the document lifecycle is important for building robust Automerge applications:
+
+1. **Creation**: Documents are created using `repo.create()` with initial data
+2. **Loading**: Existing documents are loaded using `repo.find()` with their URL
+3. **Modification**: Documents are modified using the `changeDoc` function
+4. **Sharing**: Documents are shared by passing their URLs to other users
+5. **Merging**: Changes from different users are automatically merged
+
+<Admonition type="info">
+
+We recommend keeping Automerge documents small and granular: you can load just what you need and share with other users. As a general principle, our motto is "if the data should always travel together, put it in the same document". Remember that each document has its own history, and you can't only share part of a document.
+
+</Admonition>
+
+[← Previous: Local Storage & Sync](/docs/quickstart/local-sync) | [Next: React Integration →](/docs/quickstart/react)

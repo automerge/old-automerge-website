@@ -1,0 +1,149 @@
+---
+sidebar_position: 3
+title: "Local Storage & Sync"
+---
+
+import { jsx } from "react/jsx-runtime";
+import Admonition from "@theme/Admonition";
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+import Exercise from "../components/Exercise";
+import Solution from "../components/Solution";
+
+## Storage & Network Adapters
+
+Currently, the task list app doesn't persist or sync any changes, even locally.
+
+To prepare to add local multiplayer capabilities to the app, you'll initialize a local-first Repo to:
+
+- save Docs client-side in the browser's [IndexedDB](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API), using the `IndexedDBStorageAdapter` from `@automerge/automerge-repo-storage-indexeddb`
+- keep local users (i.e. tabs within the same browser/origin) in sync via a [BroadcastChannel](https://developer.mozilla.org/en-US/docs/Web/API/Broadcast_Channel_API), using the `BroadcastChannelNetworkAdapter`.
+
+<Exercise>
+
+#### Create a Repo to hold your documents
+
+Start by adding `@automerge/react` to your project.
+
+<Tabs>
+<TabItem value="npm" label="npm">
+
+```bash
+# highlight-next-line
+$ npm install @automerge/react
+# ...installing dependencies...
+```
+
+</TabItem>
+<TabItem value="yarn" label="yarn">
+
+```bash
+# highlight-next-line
+$ yarn add @automerge/react
+# ...installing dependencies...
+```
+
+</TabItem>
+<TabItem value="pnpm" label="pnpm">
+
+```bash
+# highlight-next-line
+$ pnpm add @automerge/react
+# ...installing dependencies...
+```
+
+</TabItem>
+</Tabs>
+
+In `src/main.tsx`, import `@automerge/react` and create a Repo object configured with networking and storage.
+
+We'll start by storing our data in IndexedDB so we don't lose it when we refresh the browser, and we'll use the inefficient but simple BroadcastChannel networking adapter to keep our browser tabs in sync.
+
+```tsx title="src/main.tsx"
+import React from "react";
+import ReactDOM from "react-dom/client";
+import App from "./App.tsx";
+import "./index.css";
+
+// highlight-start
+import {
+  Repo,
+  BroadcastChannelNetworkAdapter,
+  IndexedDBStorageAdapter,
+} from "@automerge/react";
+
+const repo = new Repo({
+  storage: new IndexedDBStorageAdapter(),
+  network: [new BroadcastChannelNetworkAdapter()],
+});
+// highlight-end
+
+ReactDOM.createRoot(document.getElementById("root")!).render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+);
+```
+
+There are lots of other storage and networking adapters for all kinds of different environments. We'll see more of them later.
+
+</Exercise>
+
+### Repos in React: `RepoContext`
+
+The [`@automerge/react` package](https://github.com/automerge/automerge-repo/tree/main/packages/automerge-repo-react-hooks) provides some React-specific conveniences for working with Automerge repositories.
+
+A `RepoContext` makes your repo and its documents available throughout your React application, via `useRepo` and `useDocument` hooks which can be called in any client component.
+
+<Exercise>
+
+#### Add a `RepoContext` to the React app
+
+In `main.tsx`, import `RepoContext` and modify the `React.render()` call to wrap the `App` component with a `RepoContext.Provider`, passing in your fresh new `repo` to the context's `value` prop.
+
+```tsx title="src/main.tsx"
+import React from "react";
+import ReactDOM from "react-dom/client";
+import App from "./App.tsx";
+import "./index.css";
+import {
+  Repo,
+  BroadcastChannelNetworkAdapter,
+  IndexedDBStorageAdapter,
+  // highlight-next-line
+  RepoContext,
+} from "@automerge/react";
+
+const repo = new Repo({
+  storage: new IndexedDBStorageAdapter(),
+  network: [new BroadcastChannelNetworkAdapter()],
+});
+
+ReactDOM.createRoot(document.getElementById("root")!).render(
+  <React.StrictMode>
+    {/* highlight-next-line */}
+    <RepoContext.Provider value={repo}>
+      <App />
+      {/* highlight-next-line */}
+    </RepoContext.Provider>
+  </React.StrictMode>
+);
+```
+
+</Exercise>
+
+### Testing Local Sync
+
+Now that we have the Repo set up with local storage and sync, you can test it by:
+
+1. Opening the app in two different browser tabs
+2. Making changes in one tab
+3. Seeing those changes appear in the other tab
+4. Refreshing both tabs to verify the changes persist
+
+The changes are now:
+
+- Stored locally in IndexedDB (so they persist across page reloads)
+- Synced between tabs via BroadcastChannel (so changes appear in real-time)
+
+[← Previous: Core Concepts](/docs/quickstart/concepts) | [Next: Document Management →](/docs/quickstart/documents)
