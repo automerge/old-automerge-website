@@ -27,6 +27,7 @@
   --ifm-hero-background-color: #efefef;
   --ifm-hero-text-color: inherit;
   --docusaurus-highlighted-code-line-bg: rgb(226, 231, 244);
+  --docusaurus-highlighted-red-code-line-bg: rgb(244, 226, 226);
   --ifm-tabs-color-active: var(--ifm-color-content);
   --ifm-tabs-color-active-border: var(--ifm-color-primary);
 }
@@ -134,4 +135,11 @@ code {
 
 video {
   max-width: 100%;
+}
+
+.theme-code-block-highlighted-red-line {
+  background-color: var(--docusaurus-highlighted-red-code-line-bg);
+  display: block;
+  margin: 0 calc(-1 * var(--ifm-pre-padding));
+  padding: 0 var(--ifm-pre-padding);
 }

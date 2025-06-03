@@ -1,0 +1,69 @@
+---
+title: "Persisting the Root Document"
+---
+
+import { jsx } from "react/jsx-runtime";
+import Admonition from "@theme/Admonition";
+import Exercise from "../components/Exercise";
+import Solution from "../components/Solution";
+
+## Keeping Track Of the Root Document
+
+Putting all our task lists in a root document is great, but right now we don't persist the root document, instead creating a new one every time we load the app. To make the root document useful we're going to want to persist it somewhere. Unlike the individual task lists a root document isn't really "the thing we're looking at", but is more like a "user account" in that it is the context in which the rest of the application works.
+
+To achieve this kind of usage we're going to store the root document ID in the browser's local storage. This way, even if you close the browser or refresh the page, your root document will still be there when you come back. Let's add some code to manage this process to `src/rootDoc.ts`.
+
+```typescript title="src/rootDoc.ts"
+import { AutomergeUrl, Repo } from "@automerge/react";
+
+// highlight-next-line
+const ROOT_DOC_URL_KEY = "root-doc-url";
+
+export type RootDocument = {
+  taskLists: AutomergeUrl[];
+};
+
+// highlight-start
+export const getOrCreateRoot = (repo: Repo): AutomergeUrl => {
+  // Check if we already have a root document
+  const existingId = localStorage.getItem(ROOT_DOC_URL_KEY);
+  if (existingId) {
+    return existingId as AutomergeUrl;
+  }
+
+  // Otherwise create one and (synchronously) store it
+  const root = repo.create<RootDocument>({ taskLists: [] });
+  localStorage.setItem(ROOT_DOC_URL_KEY, root.url);
+  return root.url;
+};
+// highlight-end
+```
+
+Here we're storing the root document URL in the `"root-doc-url"` key in the browsers local storage. The `getOrCreateRoot` function checks if a root document already exists in local storage. If it does, it returns that document's URL. If not, it creates a new root document with an empty list of task lists and stores its URL in local storage.
+
+Let's call this function on startup:
+
+```tsx title="src/main.tsx"
+// ...
+window.repo = repo;
+
+// Depending if we have an AutomergeUrl, either find or create the document
+// highlight-next-line
+const rootDocUrl = getOrCreateRoot(repo);
+// highlight-next-line
+window.handle = await repo.find(rootDocUrl);
+
+ReactDOM.createRoot(document.getElementById("root")!).render(
+  <React.StrictMode>
+    <Suspense fallback={<div>Loading a document...</div>}>
+      <RepoContext.Provider value={repo}>
+        <App docUrl={window.handle.url} />
+      </RepoContext.Provider>
+    </Suspense>
+  </React.StrictMode>,
+);
+```
+
+#### Checking it works
+
+If you open the application, you should be able to create multiple task lists and switch between them in the UI adding items. If you refresh the page, or copy the URL and open it in a new tab, you should see the same task lists and items because the root document URL is now being persisted in local storage.

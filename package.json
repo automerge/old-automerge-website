@@ -18,7 +18,7 @@
     "@automerge/automerge-repo": "^2.0.0",
     "@automerge/vanillajs": "^2.0.0",
     "@docusaurus/core": "3.7.0",
-    "@docusaurus/plugin-client-redirects": "^3.7.0",
+    "@docusaurus/plugin-client-redirects": "3.7.0",
     "@docusaurus/preset-classic": "3.7.0",
     "@docusaurus/theme-mermaid": "3.7.0",
     "@fontsource/merriweather": "^5.0.12",
