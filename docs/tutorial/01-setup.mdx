@@ -1,0 +1,92 @@
+---
+title: "Setup"
+---
+
+import { jsx } from "react/jsx-runtime";
+import Admonition from "@theme/Admonition";
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+import Figure from "../components/Figure";
+
+import taskListSync from "../../static/img/tutorial/task-list-sync.webm";
+import taskListPreAmg from "../../static/img/tutorial/task-list-pre-automerge.webm";
+
+## Setup
+
+<Admonition type="info">
+
+All the code here can be found at the [automerge-repo-quickstart](https://github.com/automerge/automerge-repo-quickstart) repo.
+
+</Admonition>
+
+To get started:
+
+- clone the tutorial project from [automerge-repo-quickstart](https://github.com/automerge/automerge-repo-quickstart)
+- switch to the `without-automerge` branch
+- in the `automerge-repo-quickstart` directory, install the project dependencies
+- start the local Vite development server
+
+<Tabs>
+<TabItem value="npm" label="npm">
+
+```bash
+$ git clone https://github.com/automerge/automerge-repo-quickstart
+# Cloning into 'automerge-repo-quickstart'...
+$ cd automerge-repo-quickstart
+$ git checkout without-automerge
+$ npm install
+# ...installing dependencies...
+$ npm run dev
+```
+
+</TabItem>
+<TabItem value="yarn" label="yarn">
+
+```bash
+$ git clone https://github.com/automerge/automerge-repo-quickstart
+# Cloning into 'automerge-repo-quickstart'...
+$ cd automerge-repo-quickstart
+$ git checkout without-automerge
+$ yarn
+# ...installing dependencies...
+$ yarn dev
+```
+
+</TabItem>
+<TabItem value="pnpm" label="pnpm">
+
+```bash
+$ git clone https://github.com/automerge/automerge-repo-quickstart
+# Cloning into 'automerge-repo-quickstart'...
+$ cd automerge-repo-quickstart
+$ git checkout without-automerge
+$ pnpm install
+# ...installing dependencies...
+$ pnpm dev
+```
+
+</TabItem>
+</Tabs>
+
+Visit [localhost:5173/](http://localhost:5173/) to see the app in its "starter" state, as a basic React app not yet using Automerge: the task list can be edited, but changes are not synced between users, and all local changes are lost when the page is closed or reloaded.
+
+<Figure
+  src={taskListPreAmg}
+  type="video"
+  alt="Screen capture of the non-syncing app"
+  caption="The (unimpressive) app before you give it superpowers with Automerge"
+/>
+
+Let's fix all that with Automerge!
+
+In the exercises that follow, you'll modify the source code to:
+
+1. Configure a Repository to store & sync document changes locally
+1. Create/retrieve a task list Document by its Document URL
+1. Use the Automerge React client to update the Doc's data on user input
+1. Update the Repo to also sync changes over the network (when available)
+1. Create and manage a persistent user account document
+1. Store and retrieve document references
+1. Build a task list document listing interface
+1. Implement task list switching
+1. Handle task list sharing and collaboration

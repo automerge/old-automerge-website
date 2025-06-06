@@ -4,7 +4,7 @@ sidebar_position: 1
 
 # Storage
 
-In the [getting started](../quickstart) section we introduced a simple application which synchronized the value of a counter between any number of tabs. If you close all the tabs and open a new one you will see that the value of the counter is persisted. How is this working? What's going on?
+In the [tutorial](../../../tutorial) section we introduced a simple task list which synchronizes a todo list between any number of tabs. If you close all the tabs and open a new one you will see that the value of the todo list is persisted. How is this working? What's going on?
 
 Before we dive into that, try this experiment. Modify the definition of the `repo` in `main.tsx` to look like this:
 
@@ -15,7 +15,7 @@ const repo = new Repo({
 });
 ```
 
-Now if you open two tabs with the same URL (including the hash component, the easiest way to achieve this is to open one tab and then duplicate it) you'll notice that the counter value is not updated live between tabs. However, if you increment the count in both tabs and then refresh either tab the count will include the increments from the other tab.
+Now if you open two tabs with the same URL you'll notice that the task list is not updated live between tabs. However, if you modify the todo list in both tabs and then refresh either tab the todo list will include the edits from the other tab.
 
 Clearly there is more going on here than just saving the current state of the document somewhere.
 
@@ -37,7 +37,7 @@ If you're not familiar with IndexedDB this might be a little confusing. IndexedD
 
 Okay, so creating a document (which is what happens when we load the page) stores a binary array under some key in the object database. This binary array is a single "incremental" change. An incremental change is not the entire history of the document but just some set of changes to the document. In this case it's the change that initializes the document with a `"counter"` field.
 
-Now click the "count" button and take another look at the IndexedDB.
+Now, make some change to the task list and take another look at IndexedDb.
 
 ![IndexedDB snapshot](./indexeddb-screenshot-snapshot.png)
 

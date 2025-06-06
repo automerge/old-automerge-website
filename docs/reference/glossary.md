@@ -19,7 +19,7 @@ _[Read more about CRDTs](https://crdt.tech/)_
 
 Applications built with Automerge are _eventually consistent._ This means if several users are working together, they will _eventually_ all see the same application state, but at any given moment it's possible for the users to be temporarily out of sync.
 
-Eventual consistency allows applications to work offline: even if a user is disconnected from the internet, Automerge allows that user to view and modify their data. If the data is shared between several users, they may all update their data independently. Later, when a network is available again, Automerge ensures that those edits are cleanly merged. See the page on [conflicts](/docs/documents/conflicts/) for more detail on these merges.
+Eventual consistency allows applications to work offline: even if a user is disconnected from the internet, Automerge allows that user to view and modify their data. If the data is shared between several users, they may all update their data independently. Later, when a network is available again, Automerge ensures that those edits are cleanly merged. See the page on [conflicts](/docs/reference/documents/conflicts/) for more detail on these merges.
 
 ## Documents
 
@@ -27,13 +27,13 @@ A document is a collection of data that holds the current state of the applicati
 
 ## Types
 
-All collaborative data structures conform to certain rules. Each variable in the document must be of one of the implemented types. Each type must conform to the rules of CRDTs. Automerge comes with a set of [pre-defined types](/docs/documents/values) such as `Map`, `Array`, `Counter`, `number`, `Text`, and so on.
+All collaborative data structures conform to certain rules. Each variable in the document must be of one of the implemented types. Each type must conform to the rules of CRDTs. Automerge comes with a set of [pre-defined types](/docs/reference/documents/values) such as `Map`, `Array`, `Counter`, `number`, `Text`, and so on.
 
 ## Changes
 
 A change describes some update to a document; think of it like a commit in Git. A change could perform several operations, for example setting several properties or updating several objects within the document, and these will all be executed atomically. Changes are commutative, which means that the order in which they are applied does not matter. When the same set of changes has been applied to two documents, Automerge guarantees that they will be in the same state.
 
-To do this, typically each change depends upon a previous change. Automerge creates a directed acyclic graph (DAG) of changes. To learn more about how automerge works internally, see the [Internals](/docs/how-it-works/backend/) section.
+To do this, typically each change depends upon a previous change. Automerge creates a directed acyclic graph (DAG) of changes.
 
 ## History
 

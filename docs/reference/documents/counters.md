@@ -14,8 +14,8 @@ instead of a plain number, because it deals with concurrent changes correctly.
 > - If two users increment it concurrently, they will both register **4** as the new value, whereas
 >   the two increments should result in a value of **5**.
 > - If one user increments twice and the other user increments three times before the documents are
->   merged, we will now have [conflicting changes](#conflicting-changes) (**5** vs. **6**), rather
->   than the desired value of **8** (3 + 2 + 3).
+>   merged, we will now have conflicting changes (**5** vs. **6**), rather > than the desired value
+>   of **8** (3 + 2 + 3).
 
 To set up a `Counter`:
 

@@ -4,7 +4,7 @@ sidebar_position: 4
 
 # Rich Text Schema
 
-The [rich text](../../documents/rich_text) API provides a set of primitives for annotating a sequence of characters with formatting information. The two primitives in question are 
+The [rich text](../../documents/rich_text) API provides a set of primitives for annotating a sequence of characters with formatting information. The two primitives in question are
 
 * Marks - formatting spans which apply to a range of characters and can overlap
 * Block markers which divide the text into blocks
@@ -24,7 +24,7 @@ We define the following marks
 * `"strong"` - represents a span of bolded text, has value `true` if present
 * `"em"` - represents a span of italicized text, has value `true` if present
 * `"link"` - represents a span of text which links to a URL. The value is a string  representing the JSON serialization of the following object
-    
+
     ```json
     {
         "href": "<the URL to link to>",
@@ -59,7 +59,7 @@ The `type` of the block determines how the block is rendered. We define the foll
 * `"ordered-list-item"` - An item in an ordered list (i.e. a numbered list)
 * `"unordered-list-item"` - An item in an unordered list (i.e. a bulleted list)
 * `"image"` - An image. The `attrs` object should contain the following keys:
-     
+
     ```typescript
     {
         src: string // the URL of the image,
@@ -119,7 +119,7 @@ If an application encounters an unknown embed block it should render the block u
 
 ## Putting It All Together
 
-When retrieving the current value of a rich text document via the [Spans API](../../documents/rich-text#The%20Spans%20API), you will get an array of Spans with the following structure:
+When retrieving the current value of a rich text document via the [Spans API](../../documents/rich_text#the-spans-api), you will get an array of Spans with the following structure:
 
 ```typescript
 {

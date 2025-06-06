@@ -1,6 +1,6 @@
 # Automerge-Repo: A "batteries-included" toolkit for building local-first applications
 
-Today we are announcing our new library, [`automerge-repo`](https://github.com/automerge/automerge-repo), which makes it vastly easier to build local-first applications with Automerge. Take a look at our [quickstart guide](/docs/quickstart) or read on for some background and examples.
+Today we are announcing our new library, [`automerge-repo`](https://github.com/automerge/automerge-repo), which makes it vastly easier to build local-first applications with Automerge. Take a look at our [quickstart guide](/docs/tutorial) or read on for some background and examples.
 
 For those new to this idea: local-first applications are a way of building software that allows both real-time collaboration (think Google Docs) and offline working (think Git). They work by storing the user's data locally, on their own device, and syncing it with collaborators in the background. You can read more about the motivation for local-first software [in our essay](https://inkandswitch.com/local-first/), or watch a [talk introducing the idea](https://www.youtube.com/watch?v=PHz17gwiOc8).
 
