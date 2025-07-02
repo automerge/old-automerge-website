@@ -142,7 +142,7 @@ handle.on("change", evt => console.log(evt.doc))
 Then in the first tab console type:
 
 ```js
-handle.change(doc => do.foo = "baz")
+handle.change(doc => doc.foo = "baz")
 ```
 
 If you switch back to the second tab, you should see the updated document logged in the console. This is because the `BroadcastChannelNetworkAdapter` is sending changes to other connected tabs.
