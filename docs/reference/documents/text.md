@@ -6,14 +6,10 @@ sidebar_position: 4
 
 Automerge provides support for collaborative text editing. Under the hood, whenever you create a `string` in Automerge you are creating a collaborative text object which supports merging concurrent changes to the `string`.
 
-:::note
-This is only true in the `next` API. In the original API collaborative text was represented by the `Automerge.Text` class. See the [next API](../../the_js_packages#the-next-api) section for more details.
-:::
-
 If you want changes to a `string` to be collaborative, you should use `Automerge.splice` to modify the string.
 
 ```js
-import { next as Automerge } from "@automerge/automerge"
+import  * as Automerge  from "@automerge/automerge"
 
 let doc = Automerge.from({text: "hello world"})
 

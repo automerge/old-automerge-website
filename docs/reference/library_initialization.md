@@ -10,7 +10,7 @@ Automerge is implemented in Rust and compiled to WebAssembly for use in javascri
 
 ### Node.js
 
-In node you don't need to do anything special as WebAssembly is supported natively, you just `import { next as A } from "@automerge/automerge"` and you're good to go.
+In node you don't need to do anything special as WebAssembly is supported natively, you just `import * as A from "@automerge/automerge"` and you're good to go.
 
 ### WebPack
 
@@ -83,14 +83,14 @@ If you see obscure looking rust stack traces complaining about being unable to c
 If your Deno instance allows access to the filesystem (the default for local development) then you can import Automerge from an npm specifier like so:
 
 ```typescript
-import { next as Am } from "npm:@automerge/automerge";
+import * as Am from "npm:@automerge/automerge";
 ```
 
 However, if your Deno process doesn't have filesystem permission then you'll need to manually initialize the WebAssembly module. One way of doing that is:
 
 ```typescript
 import { automergeWasmBase64 } from "npm:@automerge/automerge";
-import { next as Am } from "npm:@automerge/automerge";
+import * as Am from "npm:@automerge/automerge";
 
 await Am.initializeBase64Wasm(automergeWasmBase64);
 ```
@@ -106,7 +106,7 @@ import { isValidAutomergeUrl, Repo } from "npm:@automerge/automerge-repo/slim";
 /* set up Automerge's internal wasm guts manually */
 import { automergeWasmBase64 } from "npm:@automerge/automerge/automerge.wasm.base64.js";
 import * as automerge from "npm:@automerge/automerge/slim";
-await automerge.next.initializeBase64Wasm(automergeWasmBase64);
+await automerge.initializeBase64Wasm(automergeWasmBase64);
 
 /* This example will return the contents of a documentID passed in as the path as JSON. */
 export default async function (req: Request): Promise<Response> {
@@ -158,7 +158,7 @@ Here's an example of using the raw WebAssembly in a Vite application. Here we ca
 // Note the ?url suffix
 import wasmUrl from "@automerge/automerge/automerge.wasm?url";
 // Note the `/slim` suffixes
-import { next as Automerge } from "@automerge/automerge/slim";
+import * as Automerge from "@automerge/automerge/slim";
 import { Repo } from "@automerge/automerge-repo/slim";
 
 await Automerge.initializeWasm(wasmUrl)
@@ -175,7 +175,7 @@ Here's an example of using the raw WebAssembly in an application where we can lo
 ```javascript
 import { automergeWasmBase64 } from "@automerge/automerge/automerge.wasm.base64.js";
 // Note the `/slim` suffixes
-import { next as Automerge } from "@automerge/automerge/slim";
+import * as Automerge from "@automerge/automerge/slim";
 import { Repo } from `@automerge/automerge-repo/slim`;
 
 await Automerge.initializeBase64Wasm(automergeWasmBase64)
