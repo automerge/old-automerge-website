@@ -53,7 +53,7 @@ Counters are a simple CRDT which just merges by adding all concurrent operations
 
 The mapping to javascript is accomplished with the use of proxies. This means that in the javascript library maps appear as `object`s and lists appear as `Array`s. There is only one numeric type in javascript - `number` - so the javascript library guesses a bit. If you insert a javascript `number` for which [`Number.isInteger`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/isInteger) returns `true` then the number will be inserted as an integer, otherwise it will be a floating point value.
 
-How `Text` and `String` are represented will depend on whether you are using [the `next` API](/docs/reference/the_js_packages#the-next-api)
+There are two representations for strings. Plain old javascript `string`s represent collaborative text. This means that you should modify these strings using `Automerge.splice` or `Automerge.updateText`, this will ensure that your changes merge well with concurrent changes. On the other hand, non-collaborative text is represented using `ImmutableString`, which you create using `new Automerge.ImmutableString`.
 
 Timestamps are represented as javascript `Date`s.
 
@@ -62,7 +62,7 @@ Counters are represented as instances of the `Counter` class.
 Putting it all together, here's an example of an automerge document containing all the value types:
 
 ```typescript
-import * as A from "@automerge/automerge/next";
+import * as A from "@automerge/automerge";
 
 let doc = A.from({
   map: {
@@ -71,12 +71,8 @@ let doc = A.from({
     nested_list: [1],
   },
   list: ["a", "b", "c", { nested: "map" }, ["nested list"]],
-  // Note we are using the `next` API for text, so text sequences are strings
   text: "world",
-  // In the `next` API non mergable strings are instances of `RawString`.
-  // You should generally not need to use these. They are retained for backward
-  // compatibility
-  raw_string: new A.RawString("rawstring"),
+  raw_string: new A.ImmutableString("immutablestring"),
   integer: 1,
   float: 2.3,
   boolean: true,
@@ -109,7 +105,7 @@ console.log(doc);
 //   },
 //   list: [ 'Z', 'A', 'b', 'c', { nested: 'MAP' }, [ 'NESTED LIST' ] ],
 //   text: 'Hello world',
-//   raw_string: RawString { val: 'rawstring' },
+//   raw_string: ImmutableString { val: 'ImmutableString' },
 //   integer: 1,
 //   float: 2.3,
 //   boolean: true,

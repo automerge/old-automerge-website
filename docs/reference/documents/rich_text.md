@@ -18,7 +18,7 @@ When you create a mark you must decide how that mark will behave when characters
 To create a mark, call `Automerge.mark` with the start and end of the range, the name of the mark, the value of the mark, and an `expand` option. You can obtain the set of active marks on a string by calling `Automerge.marks`.
 
 ```typescript
-import { next as Automerge } from "@automerge/automerge"
+import * as Automerge from "@automerge/automerge"
 
 let doc = Automerge.from({text: "hello world"})
 
@@ -49,7 +49,7 @@ Frequently working directly with block markers and spans is tedious. You can use
 
 
 ```typescript
-import { next as Automerge } from "@automerge/automerge"
+import  * as Automerge  from "@automerge/automerge"
 
 let doc = Automerge.from({text: ""})
 
@@ -96,7 +96,7 @@ One important note: `Automerge.updateSpans` does not yet update the formatting s
 For example, let's say we want to add a new paragraph marker in the string "hello world".
 
 ```javascript
-import { next as Automerge } from "@automerge/automerge"
+import  * as Automerge  from "@automerge/automerge"
 
 let doc = Automerge.from({text: "hello world"})
 
