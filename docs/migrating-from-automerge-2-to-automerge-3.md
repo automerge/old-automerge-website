@@ -16,7 +16,7 @@ In Automerge 3 the old `Text` API is no longer available. All collaborative stri
 
 ## Steps to upgrade
 
-If you are not using the old `Text` API (you import Automerge using `import { next as Automerge } from "@automerge/automerge"`), then you can just change your imports to `import * as Automerge from "@automerge/automerge"` and you are done.
+If you are not using the old `Text` API (you import Automerge using `import { next as Automerge } from "@automerge/automerge"`), then you can just change your imports to `import * as Automerge from "@automerge/automerge"` and you are done. You don't even _have_ to do this, but we recommend it as the `next` module is now deprecated.
 
 If you _are_ using the old `Text` API then you will need to make the following changes:
 
@@ -78,5 +78,3 @@ doc = Automerge.change(doc, d => {
     d.content = new Automerge.ImmutableString("Goodbye world")
 })
 ```
-
-
