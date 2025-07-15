@@ -28,7 +28,7 @@ Automerge achieves local first sync by storing every change you make to a docume
 
 Previous versions of Automerge already used a compressed columnar format to store and transmit this metadata. This format achieved a reasonably small metadata overhead "at rest" —  over the raw data for most documents. However, when a document was actually *loaded* for editing, we used an uncompressed format for the history, so the memory usage would balloon to a significantly larger overhead.
 
-In Automerge 3.0, we've rearchitected the library so that it also uses the compressed representation at runtime. This has achieved huge memory savings. For example, pasting Moby Dick into an Automerge 2 document consumes 700Mb of memory, in Automerge 3 it only consumes 1.3Kb!
+In Automerge 3.0, we've rearchitected the library so that it also uses the compressed representation at runtime. This has achieved huge memory savings. For example, pasting Moby Dick into an Automerge 2 document consumes 700Mb of memory, in Automerge 3 it only consumes 1.3Mb!
 
 Beyond the obvious benefits of avoiding high memory usage on client devices, we've also seen that reduced memory usage can make it easier to reliably operate busy sync servers that can hold many large documents in memory at once. 
 
@@ -46,7 +46,7 @@ In Automerge 3.0, we're fully committing to the new API—we've removed the `Tex
 
 ## Try it out
 
-Automerge 3.0 is used by default when installing the latest version (`2.1.0`) or `@automerge/automerge-repo` or `@automerge/react`. If you're new to automerge take a look at the [tutorial](/docs/tutorial/) to get started.
+Automerge 3.0 is used by default when installing the latest version (`2.1.0`) of `@automerge/automerge-repo` or `@automerge/react`. If you're new to automerge take a look at the [tutorial](/docs/tutorial/) to get started.
 
 If you already have an Automerge codebase take a look at the [migration guide](/docs/migrating-from-automerge-2-to-automerge-3) to see if you need to change anything other than the version number of Automerge you depend on. If you just depend on `@automerge/automerge-repo` you'll need to run `npm update @automerge/automerge` (or your package manager's equivalent) to pull in the new version.
 
