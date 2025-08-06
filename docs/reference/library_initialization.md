@@ -51,7 +51,7 @@ export default defineConfig({
 If you'd rather use Automerge outside of any build processes, you can use something like the following example:
 
 ```javascript
-import * as AutomergeRepo from "https://esm.sh/@automerge/react@2.0.6/slim?bundle-deps";
+import * as AutomergeRepo from "https://esm.sh/@automerge/react@2.2.0/slim?bundle-deps";
 
 await AutomergeRepo.initializeWasm(
   fetch("https://esm.sh/@automerge/automerge/dist/automerge.wasm")
@@ -61,7 +61,7 @@ await AutomergeRepo.initializeWasm(
 const repo = new AutomergeRepo.Repo({
   storage: new AutomergeRepo.IndexedDBStorageAdapter(),
   network: [
-    new AutomergeRepo.BrowserWebSocketClientAdapter("wss://sync.automerge.org"),
+    new AutomergeRepo.WebSocketClientAdapter("wss://sync.automerge.org"),
   ],
 });
 ```
