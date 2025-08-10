@@ -74,7 +74,7 @@ import {
 } from "@automerge/react";
 
 const repo = new Repo({
-  network: [new WebSocketClientAdapter("wss://sync.automerge.org")],
+  network: [new BroadcastChannelNetworkAdapter()],
   storage: new IndexedDBStorageAdapter(),
 });
 
