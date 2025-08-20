@@ -1,0 +1,1980 @@
+# Automerge CRDT
+
+> Automerge is a library of data structures for building collaborative applications.
+
+This file contains all documentation content in a single document following the llmstxt.org standard.
+
+## Welcome to Automerge
+
+# Welcome to Automerge
+
+Automerge is a library of data structures for building collaborative
+applications. You can have a copy of the application state locally on several
+devices which may belong to the same user, or to different users. Each user can
+independently update the application state on their local device, even while
+offline, and save the state to local disk. This is similar to Git, which allows
+you to edit files and commit changes offline.
+
+- When a network connection is available, Automerge figures out which changes need
+  to be synced from one device to another, and brings them into the same state.
+
+  (Similar to Git, which lets you push your own changes, and pull changes from other developers, when you are online.)
+
+- If the state was changed concurrently on different devices, Automerge automatically merges the changes together cleanly, so that everybody ends up in the same state, and no changes are lost.
+
+  (Git only supports merging of plain text; Automerge allows complex file formats to be merged automatically.)
+
+- Automerge keeps track of the changes you make to the state, so that you can view old versions, compare versions, create branches, and choose when to merge them.
+
+  (Similar to Git, which allows diffing, branching, merging, and pull request workflows.)
+
+## Design principles
+
+- **Network-agnostic**. Automerge is a pure data structure library that does not care about what
+  kind of network you use. It works with any connection-oriented network protocol, which could be
+  client/server (e.g. WebSocket), peer-to-peer (e.g. WebRTC), or entirely local (e.g. Bluetooth).
+  Bindings to particular networking technologies are handled by separate libraries;
+  Automerge provides [automerge-repo](https://automerge.org/automerge-repo/index.html) for a common collection of these libraries.
+  It also works with unidirectional messaging: you can send an Automerge file as email attachment,
+  or on a USB drive in the mail, and the recipient will be able to merge it with their version.
+- **Immutable state**. An Automerge object is an immutable snapshot of the application state at one
+  point in time. Whenever you make a change, or merge in a change that came from the network, you
+  get back a new state object reflecting that change. This fact makes Automerge compatible with the
+  functional reactive programming style of [React](https://reactjs.org) and
+  [Redux](http://redux.js.org/), for example.
+- **Automatic merging**. Automerge is a _Conflict-Free Replicated Data Type_ ([CRDT](https://crdt.tech/)),
+  which allows concurrent changes on different devices to be merged automatically without requiring any
+  central server. The conflict resolution approach is described
+  [in the documentation](/docs/reference/documents/conflicts/).
+- **Portable**. The [JavaScript implementation](https://github.com/automerge/automerge) of
+  Automerge is compatible with Node.js, [Electron](https://electron.atom.io/), and modern browsers.
+  The [Rust implementation](https://github.com/automerge/automerge-rs) compiles to WebAssembly
+  for use in browsers, and it exposes a C API through which it can be used on iOS and other
+  platforms without requiring a JavaScript engine. For TypeScript users, Automerge comes with
+  [type definitions](https://github.com/automerge/automerge/blob/main/@types/automerge/index.d.ts)
+  that allow you to use Automerge in a type-safe way.
+
+Automerge is designed for creating [local-first software](https://www.inkandswitch.com/local-first/),
+i.e. software that treats a user's local copy of their data (on their own device) as primary, rather
+than centralising data in a cloud service. The local-first approach enables offline working while
+still allowing several users to collaborate in real-time and sync their data across multiple
+devices. By reducing the dependency on cloud services (which may disappear if someone stops paying
+for the servers), local-first software can have greater longevity, stronger privacy, and better
+performance, and it gives users more control over their data.
+The [essay on local-first software](https://www.inkandswitch.com/local-first/) goes into more
+detail on the philosophy behind Automerge, and the pros and cons of this approach.
+
+However, if you want to use Automerge with a centralised server, that works fine too! You still get
+useful benefits, such as allowing several clients to concurrently update the data, easy sync between
+clients and server, being able to inspect the change history of your app's data, and support for
+branching and merging workflows.
+
+---
+
+## Tutorial: An Automerge todo list
+
+import { jsx } from "react/jsx-runtime";
+import Admonition from "@theme/Admonition";
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+import Figure from "../components/Figure";
+
+import taskListSync from "../../static/img/tutorial/task-list-sync.webm";
+import taskListPreAmg from "../../static/img/tutorial/task-list-pre-automerge.webm";
+
+Automerge is a suite of tools for building [local-first](https://www.inkandswitch.com/local-first) web applications with real-time synchronization that works on and offline.
+
+In this tutorial, you'll build a local-first multiplayer app with TypeScript, React, [Vite](https://vite.dev), and Automerge. You'll discover how to:
+
+- Represent data as Automerge [Documents](/docs/reference/concepts/#documents)
+- [Change](/docs/reference/documents/conflicts/) documents' data and [merge](/docs/reference/under-the-hood/merge_rules/) changes from different peers
+- Store & synchronize a set of documents in an Automerge [Repository](/docs/reference/concepts/#repositories)
+- Build a multiplayer realtime web app with the Automerge [React client](https://github.com/automerge/automerge-repo/tree/main/packages/automerge-repo-react-hooks)
+
+---
+
+## Modeling Data
+
+# Modeling Data
+
+All data in Automerge must be stored in a document. A document can be modeled in a variety of ways, and there are many design patterns that can be used. An application could have many documents, typically identified by a UUID.
+
+In this section, we will discuss how to model data within a particular document, including how to version and manage data with Automerge in production scenarios.
+
+## How many documents?
+
+You can decide which things to group together as one Automerge document (more fine grained or more coarse grained) based on what makes sense in your app. Having hundreds of docs should be fine — we've built prototypes of that scale. One major automerge project, [PushPin](https://github.com/automerge/pushpin), was built around very granular documents. This had a lot of benefits, but the overhead of syncing many thousands of documents was high.
+
+We believe on the whole there's an art to the granularity of data that is universal. When should you have two JSON documents or two SQLite databases or two rows? We suspect that an Automerge document is best suited to being a unit of collaboration between two people or a small group.
+
+## Setting up an initial document structure
+
+When you create a document using `Automerge.init()`, it's just an empty JSON document with no properties. As the first change, most applications will need to initialize some empty collection objects that are expected to be present within the document.
+
+The easiest way of doing this is with a call to `Automerge.change()` that sets up the document schema in the form that you need it, like in the code sample above. You can then sync this initial change to all of your devices; once everybody has the schema, you can have different users updating the document on different devices, and the updates should merge nicely. For example:
+
+```js
+// Set up the `cards` array in doc1
+let doc1 = Automerge.change(Automerge.init(), (doc) => {
+  doc.cards = [];
+});
+
+// In doc2, don't create `cards` again! Instead, merge
+// the schema initialization from doc1
+let doc2 = Automerge.merge(Automerge.init(), doc1);
+
+// Now we can update both documents
+doc1 = Automerge.change(doc1, (doc) => {
+  doc.cards.push({ title: "card1" });
+});
+
+doc2 = Automerge.change(doc2, (doc) => {
+  doc.cards.push({ title: "card2" });
+});
+
+// The merged document will contain both cards
+doc1 = Automerge.merge(doc1, doc2);
+doc2 = Automerge.merge(doc2, doc1);
+```
+
+However, sometimes it's inconvenient to have to sync the initial change to a device before you can modify the document on that device. If you want two devices to be able to independently set up their own document schema, but still to be able to merge those documents, you have to be careful. Simply doing `Automerge.change()` on each device to initialize the schema **will not work**, because you now have two different documents with no shared ancestry (even if the initial change performs the same operations, each device has a different actorId and so the changes will be different).
+
+If you really must initialize each device's copy of a document independently, one option is to do the initial `Automerge.change()` once to set up your schema, then call `Automerge.save()` on the document (which returns a byte array), and _hard-code that byte array into your application_. Now, on each device that needs to initialize a document, you do this:
+
+```js
+// hard-code the initial change here
+const initChange = new Uint8Array([133, 111, 74, 131, ...])
+let [doc] = Automerge.load(initChange)
+```
+
+This will set you up with a document whose initial change is the one you hard-coded. Any documents you set up with the same initial change will be able to merge.
+
+## Versioning
+
+Often, there comes a time in the production lifecycle where you will need to change the schema of a document. Because Automerge uses a JSON document model, it's similar to a NoSQL database, where properties can be arbitrarily removed and added at will.
+
+You can implement your own versioning scheme, for example by embedding a schema version number into the document, and writing a function that can upgrade a document from one schema version to the next. However, doing this in a CRDT like Automerge is more difficult than migrations in a centralized relational database, because it could happen that two users independently perform the same migration. In this case, you need to ensure that the two migrations don't clash with each other, which is difficult.
+
+One way of making migrations safe is by using the tricks from the previous section: in addition to hard-coding the initial change that sets up the document, you can also hard-code migrations that upgrade from one schema version to the next, using the same technique (either hard-coding the change as a byte array, or making a change on the fly with hard-coded actorId and timestamp). Do not modify the initial change; instead, every migration should be a separate hard-coded change that depends only on the preceding change. This way, you can have multiple devices independently applying the same migration, and they will all be compatible because the migration is performed identically on every device.
+
+```js
+type DocV1 = {
+  version: 1,
+  cards: Card[]
+}
+
+type DocV2 = {
+  version: 2,
+  title: Automerge.Text,
+  cards: Card[]
+}
+
+// This change creates the `title` property required in V2,
+// and updates the `version` property from 1 to 2
+const migrateV1toV2 = new Uint8Array([133, 111, 74, 131, ...])
+
+let doc = getDocumentFromNetwork()
+if (doc.version === 1) {
+  [doc] = Automerge.applyChange(doc, [migrateV1toV2])
+}
+```
+
+Also keep in mind that in your app there might be some users using an old version of the app while other users are using a newer version; you will need to take care with migrations to ensure that they do not break compatibility with older app versions, or force all users to update to the latest version.
+
+Some further ideas on safe schema migrations in CRDT apps are discussed in the [Cambria](https://www.inkandswitch.com/cambria) paper, but these are not yet implemented in Automerge. If you want to work on improving schema migrations in Automerge, please get in touch — contributions are welcome!
+
+## Performance
+
+Automerge documents hold their entire change histories. It is fairly performant, and can handle a significant amount of data in a single document's history. Performance depends very much on your workload, so we strongly suggest you do your own measurements with the type and quantity of data that you will have in your app.
+
+Some developers have proposed “garbage collecting” large documents. If a document gets to a certain size, a central authority could emit a message to each peer that it would like to reduce it in size and only save the history from a specific change (hash). Martin Kleppmann did some experiments with a benchmark document to see how much space would be saved by discarding history, with and without preserving tombstones. See [this video at 55 minutes in](https://youtu.be/x7drE24geUw?t=3289). The savings are not all that great, which is why we haven't prioritised history truncation so far.
+
+Typically, performance improvements can come at the networking level. You can set up a single connection (between peers or client-server) and sync many docs over a single connection. The basic idea is to tag each message with the ID of the document it belongs to. There are possible ways of optimising this if necessary. In general, having fewer documents that a client must load over the network or into memory at any given time will reduce the synchronization and startup time for your application.
+
+---
+
+## Prosemirror + React + Automerge
+
+# Prosemirror + React + Automerge
+
+Automerge supports rich text editing on top of [ProseMirror](https://prosemirror.net/). This guide will show you how to set up a simple collaborative rich text editor in React using Automerge and ProseMirror.
+
+All the code here can be found at https://github.com/automerge/automerge-prosemirror/tree/main/examples/react
+
+First, create a an example vite app using the `@automerge/vite-app` template. This will give you a basic React app with the Automerge dependencies already installed.
+
+```bash
+yarn create @automerge/vite-app
+```
+
+Then install our prosemirror dependencies
+
+```bash
+yarn add @automerge/prosemirror prosemirror-example-setup prosemirror-model prosemirror-state prosemirror-view
+```
+
+Now, the app created by `@automerge/vite-app` creates a document which contains a `Counter`, but we want a `string` which will contain the text. Modify `main.tsx` so that the handle initialization logic looks like this:
+
+```jsx title="src/main.tsx"
+...
+let handle
+if (isValidAutomergeUrl(rootDocUrl)) {
+  handle = repo.find(rootDocUrl)
+} else {
+  handle = repo.create({text: ""})
+}
+...
+```
+
+First, let's create a basic skeleton component which just loads the document handle. The prosemirror bindings require that the document handle be loaded before we begin, so we'll add a bit of boilerplate to achieve this:
+
+```jsx title="src/App.tsx"
+import { AutomergeUrl } from "@automerge/automerge-repo"
+import { useHandle } from "@automerge/automerge-repo-react-hooks"
+import { useEffect, useState } from "react"
+
+function App({ docUrl }: { docUrl: AutomergeUrl }) {
+  const handle = useHandle(docUrl)
+  const [loaded, setLoaded] = useState(handle && handle.docSync() != null)
+  useEffect(() => {
+    if (handle != null) {
+      handle.whenReady().then(() => {
+        if (handle.docSync() != null) {
+          setLoaded(true)
+        }
+      })
+    }
+  }, [handle])
+
+  return 
+}
+
+export default App
+```
+
+Now, we're going to create a ProseMirror editor. Prosemirror manages its own UI and state, it just needs to be attached to the DOM somehow. To achieve this we'll use the `useRef` hook to get hold of a reference to a dom element inside a React component which we can pass to prosemirror.
+
+```jsx title="src/App.tsx"
+import { AutomergeUrl } from "@automerge/automerge-repo"
+import { useHandle } from "@automerge/automerge-repo-react-hooks"
+// highlight-start
+import { useEffect, useRef, useState } from "react"
+import {EditorState} from "prosemirror-state"
+import {EditorView} from "prosemirror-view"
+import {exampleSetup} from "prosemirror-example-setup"
+import { init } from "@automerge/prosemirror"
+import "prosemirror-example-setup/style/style.css"
+import "prosemirror-menu/style/menu.css"
+import "prosemirror-view/style/prosemirror.css"
+import "./App.css"
+// highlight-end
+
+function App({ docUrl }: { docUrl: AutomergeUrl }) {
+  const editorRoot = useRef(null)
+  const handle = useHandle(docUrl)
+  const [loaded, setLoaded] = useState(handle && handle.docSync() != null)
+  useEffect(() => {
+    if (handle != null) {
+      handle.whenReady().then(() => {
+        if (handle.docSync() != null) {
+          setLoaded(true)
+        }
+      })
+    }
+  }, [handle])
+
+  // highlight-start
+  const [view, setView] = useState(null)
+  useEffect(() => {
+    if (editorRoot.current != null && loaded) {
+      // This is the integration with automerge   
+      const { pmDoc: doc, schema, plugin } = init(handle!, ["text"])
+      const plugins = exampleSetup({schema})
+      plugins.push(plugin)
+      const view = new EditorView(editorRoot.current, {
+        state: EditorState.create({
+          schema,
+          plugins,
+          doc,
+        }),
+      })
+      setView(view)
+    }
+    return () => {
+      if (view) {
+        view.destroy()
+        setView(null)
+      }
+    }
+  }, [editorRoot, loaded])
+  // highlight-end
+
+  return 
+}
+
+export default App
+```
+
+At this point if you run the application you'll find that there's a working prosemirror editor but it looks rubbish. Add the following to `src/App.css` and things will look a lot better:
+
+```css title="src/App.css"
+#root {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  display:flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100vh;
+}
+
+/* center the editor inside the #root */
+#editor {
+  margin: 0 auto;
+  width: 100%;
+  max-width: 800px;
+  flex: 1;
+  background-color: #f8f9fa;
+  color: #333;
+}
+```
+
+Alright, now we're ready to collaborate, you can load up the app in a different tab, or a different browser (the URL will contain a document URL after the `#`), and you can see changes being merged from one side to the other.
+
+---
+
+## Prosemirror + VanillaJS + Automerge
+
+# Prosemirror + VanillaJS + Automerge
+
+Automerge supports rich text using [ProseMirror](https://prosemirror.net/). This guide will show you how to set up a simple collaborative rich text editor in a vanilla JS app; where "vanilla" means plain JavaScript without any frameworks or libraries.
+
+We _do_ need a bundler in order to use Automerge, so we'll assume you have set up something like Vite and that you have two files, `index.html` and `main.js`.
+
+First, put the following in `index.html`
+
+```html title="index.html"
+
+  
+    Prosemirror + Automerge
+  
+  
+    
+    
+  
+
+```
+
+First, we need to get `automerge-repo` set up:
+
+```js title="main.js"
+import { DocHandle, Repo, isValidAutomergeUrl } from "@automerge/automerge-repo"
+import { IndexedDBStorageAdapter } from "@automerge/automerge-repo-storage-indexeddb"
+import { BrowserWebSocketClientAdapter } from "@automerge/automerge-repo-network-websocket"
+import { init } from "@automerge/automerge-prosemirror"
+
+const repo = new Repo({
+  storage: new IndexedDBStorageAdapter("automerge"),
+  network: [new BrowserWebSocketClientAdapter("wss://sync.automerge.org")],
+})
+```
+
+Now, we'll store the automerge URL for the document we are editing in the browsers URL hash. This way, we can share the URL with others to collaborate on the document.
+
+```js title="main.js"
+// Get the document ID from the URL fragment if it's there. Otherwise, create
+// a new document and update the URL fragment to match.
+const docUrl = window.location.hash.slice(1)
+if (docUrl && isValidAutomergeUrl(docUrl)) {
+  handle = repo.find(docUrl)
+} else {
+  handle = repo.create({ text: "" })
+  window.location.hash = handle.url
+}
+// Wait for the handle to be available
+await handle.whenReady()
+```
+
+At this point we have a document handle with a fully loaded automerge document, now we need to wire up a prosemirror editor.
+
+```js title="main.js"
+// This is the integration with automerge.
+const { schema, doc, plugin } = init(handle, ["text"])
+
+const editorConfig = {
+  schema,
+  plugins: [plugin],
+}
+
+// This is the prosemirror editor.
+const view = new EditorView(document.querySelector("#editor"), {
+  state: EditorState.create({
+    doc, // Note that we initialize using the mirror
+    plugins: exampleSetup({ schema, plugins: [plugin] }),
+  }),
+})
+```
+
+Now, you can open `index.html` in your browser and start editing the document. If you open the same URL in another browser window, you should see the changes you make in one window reflected in the other.
+
+---
+
+## API Docs
+
+# API Docs
+
+- [`@automerge/automerge`](https://automerge.org/automerge/api-docs/js)
+- [`@automerge/automerge-repo`](https://automerge.org/automerge-repo/)
+
+# Other Languages
+
+Here you can find links to the APIs for each implementation.
+
+- [C](https://github.com/automerge/automerge/tree/main/rust/automerge-c)
+- [Rust](https://github.com/automerge/automerge-rs)
+- [Python](https://github.com/automerge/automerge-py)
+- [Swift (macOS, iOS)](https://automerge.org/automerge-swift/documentation/automerge/)
+
+---
+
+## Concepts
+
+# Concepts
+
+:::info
+
+This documentation is mostly focused on the javascript implementation of automerge. Some things will translate to other languages but some things - in particular the "repository" concept and `automerge-repo` library - will not.
+
+:::
+
+## Core concepts
+
+Using automerge means storing your data in automerge [documents](#documents). Documents have [URL](#document-urls)s which you can use to share or request documents with/from other peers using a [repository](#repositories). Repositories give you [`DocHandle`](#dochandles)s which you use to make changes to the document and listen for changes from other peers.
+
+Automerge as used in javascript applications is actually a composition of two libraries. [`automerge-repo`](https://www.npmjs.com/package/@automerge/automerge-repo) which provides the networking and storage plumbing, and [`automerge`](https://www.npmjs.com/package/@automerge/automerge) which provides the CRDT implementation, a transport agnostic [sync protocol](#sync-protocol), and a compressed [storage format](#storage-format) which `automerge-repo` uses to implement various networking and storage plugins.
+
+### Documents
+
+A document is the "unit of change" in automerge. It's like a combination of a JSON object and a git repository. What does that mean?
+
+Like a JSON object, an automerge document is a map from strings to values, where the values can be maps, arrays, or simple types like strings or numbers. See the [data model](/docs/reference/documents/) section for more details.
+
+Like a git repository, an automerge document has a history made up of commits. Every time you make a change to a document you are adding to the history of the document. The combination of this history and some rules about how to handle conflicts means that any two automerge documents can always be merged. See [merging](/docs/reference/under-the-hood/merge_rules.md) for the gory details.
+
+### Repositories
+
+A repository manages connections to remote peers and access to some kind of local storage. Typically you create a repository at application startup and then inject it into the parts of your application which need it. The repository gives out `DocHandle`s, which allow you to access the current state of a document and make changes to it without thinking about how to store those changes, transmit them to others, or fetch changes from others.
+
+Networking and storage for a repository are pluggable. There are various ready-made network transports and storage implementations but it is also easy to build your own.
+
+### DocHandles
+
+A `DocHandle` is an object returned from the various methods on a repository which create or request a document. The `DocHandle` has methods on it to access the underlying automerge document and to create new changes which are stored locally and transmitted to connected peers.
+
+### Document URLs
+
+Documents in a repository have a URL. An automerge URL looks like this:
+
+```
+automerge:2akvofn6L1o4RMUEMQi7qzwRjKWZ
+```
+
+That is, a string of the form `automerge:`. This URL can be passed to a repository which will use it to check if the document is in any local storage or available from any connected peers.
+
+### Sync Protocol
+
+Repositories communicate with each other using an efficient sync protocol which is implemented in `automerge`. This protocol is transport agnostic and works on a per-document basis, a lot of the work `automerge-repo` does is handling running this sync protocol for multiple documents over different kinds of network.
+
+### Storage Format
+
+`automerge` implements a compact binary storage format which makes it feasible to store all the editing history of a document (for example, storing every keystroke in a large text document). `automerge-repo` implements the common logic of figuring out when to compress documents and doing so in a way which is safe for concurrent reads and writes.
+
+---
+
+## Glossary
+
+# Glossary
+
+## CRDTs
+
+Automerge is a type of CRDT (Conflict-Free Replicated Datatype). A CRDT is a data structure that simplifies multi-user applications. We can use them to synchronize data between two devices in a way that both devices see the same application state. In many systems, copies of some data need to be stored on multiple computers. Examples include:
+
+- Mobile apps that store data on the local device, and that need to sync that data to other devices belonging to the same user (such as calendars, notes, contacts, or reminders);
+- Distributed databases, which maintain multiple replicas of the data (in the same datacenter or in different locations) so that the system continues working correctly if some of the replicas are offline;
+- Collaboration software, such as Google Docs, Trello, Figma, or many others, in which several users can concurrently make changes to the same file or data;
+- Large-scale data storage and processing systems, which replicate data in order to achieve global scalability.
+
+_[Read more about CRDTs](https://crdt.tech/)_
+
+## Eventual Consistency
+
+Applications built with Automerge are _eventually consistent._ This means if several users are working together, they will _eventually_ all see the same application state, but at any given moment it's possible for the users to be temporarily out of sync.
+
+Eventual consistency allows applications to work offline: even if a user is disconnected from the internet, Automerge allows that user to view and modify their data. If the data is shared between several users, they may all update their data independently. Later, when a network is available again, Automerge ensures that those edits are cleanly merged. See the page on [conflicts](/docs/reference/documents/conflicts/) for more detail on these merges.
+
+## Documents
+
+A document is a collection of data that holds the current state of the application. A document in Automerge is represented as an object. Each document has a set of keys which can be used to hold variables that are one of the Automerge datatypes.
+
+## Types
+
+All collaborative data structures conform to certain rules. Each variable in the document must be of one of the implemented types. Each type must conform to the rules of CRDTs. Automerge comes with a set of [pre-defined types](/docs/reference/documents/values) such as `Map`, `Array`, `Counter`, `number`, `Text`, and so on.
+
+## Changes
+
+A change describes some update to a document; think of it like a commit in Git. A change could perform several operations, for example setting several properties or updating several objects within the document, and these will all be executed atomically. Changes are commutative, which means that the order in which they are applied does not matter. When the same set of changes has been applied to two documents, Automerge guarantees that they will be in the same state.
+
+To do this, typically each change depends upon a previous change. Automerge creates a directed acyclic graph (DAG) of changes.
+
+## History
+
+Each change that is made to a data structure builds upon other changes to create a shared, materialized view of a document. Each change is dependent on a previous change, which means that all replicas are able to construct a history of the data structure. This is a powerful property in multi-user applications, and can be implemented in a way that is storage and space efficient.
+
+## Compaction
+
+Compaction is a way to serialize the current state of the document without the history. You might want to do this when:
+
+- You don't want to replicate the entire history because of bandwidth or resource concerns on the target device. This might be useful in embedded systems or mobile phones.
+- A deleted element contains some sensitive information that you would like to be purged from the history.
+
+The downsides of compacting the history of a document include not being able to synchronize that compacted document with another document that doesn't have a common ancestor.
+
+## Synchronization
+
+When two or more devices make changes to a document, and then decide to exchange those changes to come to a consistent state, we call that _synchronization_. Synchronization can, in the most simple implementation, consist of sending the full list of changes in the history to all connected devices. To improve performance, devices may negotiate which changes are missing on either end and exchange only those changes which are missing, rather than the entire change history.
+
+---
+
+## Library Initialization
+
+# Library Initialization
+
+Automerge is implemented in Rust and compiled to WebAssembly for use in javascript environments. Unfortunately the way that WebAssembly modules are loaded varies across environments. In some situations this can be handled by your build tool, but in others you may need to manually load the module. This page describes how to load automerge in various environments, and also an [escape hatch](#the-escape-hatch) which should work everywhere.
+
+## Common Environments
+
+### Node.js
+
+In node you don't need to do anything special as WebAssembly is supported natively, you just `import * as A from "@automerge/automerge"` and you're good to go.
+
+### WebPack
+
+If you're building using webpack you need to enable the `asyncWebAssembly` feature. This is done by adding the following to your `webpack.config.js`:
+
+```javascript
+{
+  experiments: {
+    asyncWebAssembly: true;
+  }
+}
+```
+
+### Vite
+
+In vite you'll need to add two plugins, `vite-plugin-wasm` and `vite-plugin-top-level-await`.
+
+```bash
+yarn add vite-plugin-wasm vite-plugin-top-level-await
+```
+
+Then in your `vite.config.js`:
+
+```javascript
+import { defineConfig } from 'vite'
+import wasm from 'vite-plugin-wasm'
+import topLevelAwait from 'vite-plugin-top-level-await'
+
+export default defineConfig({
+  ...
+  plugins: [wasm(), topLevelAwait()],
+  ...
+})
+```
+
+### Unbundled (Vanilla) JS
+
+If you'd rather use Automerge outside of any build processes, you can use something like the following example:
+
+```javascript
+import * as AutomergeRepo from "https://esm.sh/@automerge/react@2.2.0/slim?bundle-deps";
+
+await AutomergeRepo.initializeWasm(
+  fetch("https://esm.sh/@automerge/automerge/dist/automerge.wasm")
+);
+
+// Then set up an automerge repo (loading with our annoying WASM hack)
+const repo = new AutomergeRepo.Repo({
+  storage: new AutomergeRepo.IndexedDBStorageAdapter(),
+  network: [
+    new AutomergeRepo.WebSocketClientAdapter("wss://sync.automerge.org"),
+  ],
+});
+```
+
+Note that in some environments you may not have support for top-level await, in which case, you can run the last two statements inside an async function.
+
+### Cloudflare Workers
+
+Here you should be good to go by just importing `@automerge/automerge` as normal.
+
+:::warning
+
+If you see obscure looking rust stack traces complaining about being unable to create random bytes while constructing a UUID then this is because you are trying to create a document (either a new one, or loading or forking one) outside of a handler. If you run the problematic code in a handler you should be fine.
+
+:::
+
+### Deno
+
+If your Deno instance allows access to the filesystem (the default for local development) then you can import Automerge from an npm specifier like so:
+
+```typescript
+import * as Am from "npm:@automerge/automerge";
+```
+
+However, if your Deno process doesn't have filesystem permission then you'll need to manually initialize the WebAssembly module. One way of doing that is:
+
+```typescript
+import { automergeWasmBase64 } from "npm:@automerge/automerge";
+import * as Am from "npm:@automerge/automerge";
+
+await Am.initializeBase64Wasm(automergeWasmBase64);
+```
+
+### Val.town
+
+Val.town is a cloud-based Deno execution platform. Here's the text of a simple "val" which returns the contents of the documentId passed via the path.
+
+```typescript
+import { BrowserWebSocketClientAdapter } from "npm:@automerge/automerge-repo-network-websocket";
+import { isValidAutomergeUrl, Repo } from "npm:@automerge/automerge-repo/slim";
+
+/* set up Automerge's internal wasm guts manually */
+import { automergeWasmBase64 } from "npm:@automerge/automerge/automerge.wasm.base64.js";
+import * as automerge from "npm:@automerge/automerge/slim";
+await automerge.initializeBase64Wasm(automergeWasmBase64);
+
+/* This example will return the contents of a documentID passed in as the path as JSON. */
+export default async function (req: Request): Promise {
+  const docId = new URL(req.url).pathname.substring(1);
+
+  if (!isValidAutomergeUrl("automerge:" + docId)) {
+    return Response.error();
+  }
+
+  const repo = new Repo({
+    network: [new BrowserWebSocketClientAdapter("wss://sync.automerge.org")],
+  });
+  const handle = repo.find(docId);
+  const contents = await handle.doc();
+  return Response.json(contents);
+}
+```
+
+## The escape hatch
+
+If you're in an environment which doesn't support importing WebAssembly modules as ES modules then you need to initialize the WebAssembly manually. There are two parts to this:
+
+- Change all imports in your application of `@automerge/automerge` and `@automerge/automerge-repo` to the "slim" variants (`@automerge/automerge/slim` and `@automerge/automerge-repo/slim)`
+- Obtain the WebAssembly module and initialize it manually, then wait for initialization to complete.
+
+For this latter part we expose two exports from the `@automerge/automerge` package which can be used to obtain the raw WebAssembly. `@automerge/automerge/automerge.wasm` is a binary version of the WebAssembly file, whilst `@automerge/automerge/automerge.wasm.base64.js` is a JS modules with a single export called `automergeWasmBase64` which is a base64 encoded version of the WebAssembly file.
+
+:::note
+Automerge's npm module uses the [package exports](https://nodejs.org/api/packages.html#exports) feature, which means your environment will need to support that.
+
+For example, React Native requires [configuring](https://reactnative.dev/blog/2023/06/21/package-exports-support) a `metro.config.js` to support package exports:
+
+```js
+const { getDefaultConfig } = require("expo/metro-config");
+const config = getDefaultConfig(__dirname);
+config.resolver && (config.resolver.unstable_enablePackageExports = true);
+module.exports = config;
+```
+
+:::
+
+Once you've obtained the WebAssembly file you initialize it by passing it to either `initializeWasm` - which expects a WebAssembly module or a URL to fetch - or to `initializeBase64Wasm` which expects a base64 encoded string.
+
+### Using the raw WebAssembly
+
+Here's an example of using the raw WebAssembly in a Vite application. Here we can use the `?url` suffix on an import to obtain the URL to an asset.
+
+```javascript
+// Note the ?url suffix
+import wasmUrl from "@automerge/automerge/automerge.wasm?url";
+// Note the `/slim` suffixes
+import * as Automerge from "@automerge/automerge/slim";
+import { Repo } from "@automerge/automerge-repo/slim";
+
+await Automerge.initializeWasm(wasmUrl)
+
+// Now we can get on with our lives
+
+const repo = new Repo({..})
+```
+
+### Using the base64 encoded WebAssembly
+
+Here's an example of using the raw WebAssembly in an application where we can load JavaScript files but nothing else.
+
+```javascript
+import { automergeWasmBase64 } from "@automerge/automerge/automerge.wasm.base64.js";
+// Note the `/slim` suffixes
+import * as Automerge from "@automerge/automerge/slim";
+import { Repo } from `@automerge/automerge-repo/slim`;
+
+await Automerge.initializeBase64Wasm(automergeWasmBase64)
+
+// Now we can get on with our lives
+const repo = new Repo({..})
+```
+
+---
+
+## The JavaScript packages
+
+# The JavaScript packages
+
+The javascript API has been through several iterations and is currently split over a few libraries. In greenfield applications, here's how the library is intended to be used:
+
+Install both the `@automerge/automerge` and `@automerge/automerge-repo` packages. Then install the networking and storage plugins you need (typically `@automerge/automerge-repo-network-*` and `@automerge/automerge-repo-storage-*`) packages. Take a look at the cookbook for examples of different ways of using these.
+
+## `@automerge/react` and `@automerge/vanilla`
+
+For React and vanilla JS applications we offer the `@automerge/react` and `@automerge/vanilla` packages respectively. These packages just re-export the public items from `automerge` and `automerge-repo` and several common network and storage adapters for your convenience.
+
+## Relationship between `@automerge/automerge` and `@automerge/automerge-repo`
+
+The core automerge libraries (both the original classic library and the WASM implementation) offer a compact storage format and a network agnostic sync protocol, but they don't actually do the work of wiring these things up to real storage engines (such as filesystems) or transports (such as websockets). `automerge-repo` implements all of this plumbing and is how we recommend using automerge going forward.
+
+---
+
+## Conflicts
+
+# Conflicts
+
+Automerge allows different nodes to independently make arbitrary changes to their respective copies
+of a document. In most cases, those changes can be combined without any trouble. For example, if
+users modify two different objects, or two different properties in the same object, then it is
+straightforward to combine those changes.
+
+## What is a Conflict?
+
+If users concurrently insert or delete items in a list (or characters in a text document), Automerge
+preserves all the insertions and deletions. If two users concurrently insert at the same position,
+Automerge will ensure that on all nodes the inserted items are placed in the same order.
+
+The only case Automerge cannot handle automatically, because there is no well-defined resolution, is
+**when users concurrently update the same property in the same object** (or, similarly, the same
+index in the same list). In this case, Automerge picks one of the concurrently written
+values as the "winner", and it ensures that this winner is the same on all nodes:
+
+```js
+// Create two different documents
+let doc1 = Automerge.change(Automerge.init(), (doc) => {
+  doc.x = 1;
+});
+let doc2 = Automerge.change(Automerge.init(), (doc) => {
+  doc.x = 2;
+});
+doc1 = Automerge.merge(doc1, doc2);
+doc2 = Automerge.merge(doc2, doc1);
+// Now, we can't tell which value doc1.x and doc2.x are going to assume --
+// the choice is arbitrary, but deterministic and equal across both documents.
+assert.deepEqual(doc1, doc2);
+```
+
+Although only one of the concurrently written values shows up in the object, the other values are
+not lost. They are merely relegated to a conflicts object. Suppose `doc.x = 2` is chosen as the
+"winning" value:
+
+```js
+doc1; // {x: 2}
+doc2; // {x: 2}
+Automerge.getConflicts(doc1, "x"); // {'1@01234567': 1, '1@89abcdef': 2}
+Automerge.getConflicts(doc2, "x"); // {'1@01234567': 1, '1@89abcdef': 2}
+```
+
+Here, we've recorded a conflict on property `x`. The object returned by `getConflicts` contains the
+conflicting values, both the "winner" and any "losers". You might use the information in the
+conflicts object to show the conflict in the user interface. The keys in the conflicts object are
+the internal IDs of the operations that updated the property `x`.
+
+The next time you assign to a conflicting property, the conflict is automatically considered to be
+resolved, and the conflict disappears from the object returned by `Automerge.getConflicts()`.
+
+Automerge uses a combination of LWW (last writer wins) and multi-value register. By default, if you read from `doc.foo` you will get the LWW semantics, but you can also see the conflicts by calling `Automerge.getConflicts(doc, 'foo')` which has multi-value semantics.
+
+Note that "last writer wins" here is based on the internal ID of the opeartion, not a wall clock time. The internal ID is a unique operation ID that is the combination of a counter and the actorId that generated it. Conflicts are ordered based on the counter first (using the actorId only to break ties when operations have the same counter value).
+
+---
+
+## Counters
+
+# Counters
+
+If you have a numeric value that is only ever changed by adding or subtracting (e.g. counting how
+many times the user has done a particular thing), you should use the `Automerge.Counter` datatype
+instead of a plain number, because it deals with concurrent changes correctly.
+
+> **Note:** Using the `Automerge.Counter` datatype is safer than changing a number value yourself
+> using the `++` or `+= 1` operators. For example, suppose the value is currently **3**:
+>
+> - If two users increment it concurrently, they will both register **4** as the new value, whereas
+>   the two increments should result in a value of **5**.
+> - If one user increments twice and the other user increments three times before the documents are
+>   merged, we will now have conflicting changes (**5** vs. **6**), rather > than the desired value
+>   of **8** (3 + 2 + 3).
+
+To set up a `Counter`:
+
+```js
+state = Automerge.change(state, (doc) => {
+  // The counter is initialized to 0 by default. You can pass a number to the
+  // Automerge.Counter constructor if you want a different initial value.
+  doc.buttonClicks = new Automerge.Counter();
+});
+```
+
+To get the current counter value, use `doc.buttonClicks.value`. Whenever you want to increase or
+decrease the counter value, you can use the `.increment()` or `.decrement()` method:
+
+```js
+state = Automerge.change(state, (doc) => {
+  doc.buttonClicks.increment(); // Add 1 to counter value
+  doc.buttonClicks.increment(4); // Add 4 to counter value
+  doc.buttonClicks.decrement(3); // Subtract 3 from counter value
+});
+```
+
+> **Note:** In relational databases it is common to use an auto-incrementing counter to generate
+> primary keys for rows in a table, but this is not safe in Automerge, since several users may end
+> up generating the same counter value! Instead it is best to use UUIDs to identify entities.
+
+---
+
+## Document Data Model
+
+# Document Data Model
+
+Automerge documents are quite similar to JSON objects. A document always consists of a root map which is a map from strings to other automerge values, which can themselves be composite types.
+
+The types in automerge are:
+
+- Composite types
+  - Maps
+  - [List](lists)
+  - [Text](./text)
+- Scalar (non-composite) types:
+  - IEEE 754 64 bit floating point numbers
+  - Unsigned integers
+  - Signed integers
+  - Booleans
+  - Strings
+  - Timestamps
+  - Counters
+  - Byte arrays
+
+See [below](#javascript-language-mapping) for how these types map to JavaScript types.
+
+## Maps
+
+Maps have string keys and any automerge type as a value. "string" here means a unicode string. The underlying representation in automerge is as UTF-8 byte sequences but they are exposed as utf-16 strings in javascript.
+
+## Lists
+
+A list is an ordered sequence of automerge values. The underlying data structure is an RGA sequence, which means that concurrent insertions and deletions can be merged in a manner which attempts to preserve user intent.
+
+## Text
+
+Text is an implementation of the [peritext](https://www.inkandswitch.com/peritext/) CRDT. This is conceptually similar to a [list](#lists) where each element is a single unicode scalar value representing a single character. In addition to the characters `Text` also supports "marks". Marks are tuples of the form `(start, end, name, value)` which have the following meanings:
+
+- `start` - the index of the beginning of the mark
+- `end` - the index of the end of the mark
+- `name` - the name of the mark
+- `value` - any scalar (as in automerge scalar) value
+
+For example, a bold mark from characters 1 to 5 might be represented as `(1, 5, "bold", true)`.
+
+Note that the restriction to scalar values for the value of a mark will be lifted in future, although mark values will never be mutable - instead you should always create a new mark when updating a value. For now, if you need complex values in a mark you should serialize the value to a string.
+
+## Timestamps
+
+Timestamps are the integer number of milliseconds since the unix epoch (midnight 1970, UTC).
+
+## Counter
+
+Counters are a simple CRDT which just merges by adding all concurrent operations. They can be incremented and decremented.
+
+## Javascript language mapping
+
+The mapping to javascript is accomplished with the use of proxies. This means that in the javascript library maps appear as `object`s and lists appear as `Array`s. There is only one numeric type in javascript - `number` - so the javascript library guesses a bit. If you insert a javascript `number` for which [`Number.isInteger`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/isInteger) returns `true` then the number will be inserted as an integer, otherwise it will be a floating point value.
+
+There are two representations for strings. Plain old javascript `string`s represent collaborative text. This means that you should modify these strings using `Automerge.splice` or `Automerge.updateText`, this will ensure that your changes merge well with concurrent changes. On the other hand, non-collaborative text is represented using `ImmutableString`, which you create using `new Automerge.ImmutableString`.
+
+Timestamps are represented as javascript `Date`s.
+
+Counters are represented as instances of the `Counter` class.
+
+Putting it all together, here's an example of an automerge document containing all the value types:
+
+```typescript
+import * as A from "@automerge/automerge";
+
+let doc = A.from({
+  map: {
+    key: "value",
+    nested_map: { key: "value" },
+    nested_list: [1],
+  },
+  list: ["a", "b", "c", { nested: "map" }, ["nested list"]],
+  text: "world",
+  raw_string: new A.ImmutableString("immutablestring"),
+  integer: 1,
+  float: 2.3,
+  boolean: true,
+  bytes: new Uint8Array([1, 2, 3]),
+  date: new Date(),
+  counter: new A.Counter(1),
+  none: null,
+});
+
+doc = A.change(doc, (d) => {
+  // Insert 'Hello' at the beginning of the string
+  A.splice(d, ["text"], 0, 0, "Hello ");
+  d.counter.increment(20);
+  d.map.key = "new value";
+  d.map.nested_map.key = "new nested value";
+  d.list[0] = "A";
+  d.list.insertAt(0, "Z");
+  d.list[4].nested = "MAP";
+  d.list[5][0] = "NESTED LIST";
+});
+
+console.log(doc);
+
+// Prints
+// {
+//   map: {
+//     key: 'new value',
+//     nested_map: { key: 'new nested value' },
+//     nested_list: [ 1 ]
+//   },
+//   list: [ 'Z', 'A', 'b', 'c', { nested: 'MAP' }, [ 'NESTED LIST' ] ],
+//   text: 'Hello world',
+//   raw_string: ImmutableString { val: 'ImmutableString' },
+//   integer: 1,
+//   float: 2.3,
+//   boolean: true,
+//   bytes: Uint8Array(3) [ 1, 2, 3 ],
+//   date: 2023-09-11T13:35:12.229Z,
+//   counter: Counter { value: 21 },
+//   none: null
+// }
+```
+
+---
+
+## Lists
+
+# Lists
+
+JavaScript Arrays are fully supported in Automerge. You can use `push`, `unshift`, `insertAt`, `deleteAt`, `splice`, loops, and nested objects.
+
+```js
+newDoc = Automerge.change(currentDoc, (doc) => {
+  doc.list = []; // creates an empty list object
+  doc.list.push(2, 3);
+  doc.list.unshift(0, 1); // unshift() adds elements at the beginning
+  doc.list[3] = Math.PI; // overwriting list element by index
+  // now doc.list is [0, 1, 2, 3.141592653589793]
+  // Looping over lists works as you'd expect:
+  for (let i = 0; i  {
+  const newItem = { id: 123, title: "Rewrite everything in Rust", done: false };
+  doc.cards = {
+    ids: [...doc.cards.ids, newItem.id],
+    entities: { ...doc.cards.entities, [newItem.id]: newItem },
+  };
+});
+```
+
+While this pattern works fine outside of Automerge, please **don't do this in Automerge**! Please
+use mutable idioms to update the state instead, like this:
+
+```js
+state = Automerge.change(state, "Add card", (doc) => {
+  const newItem = { id: 123, title: "Rewrite everything in Rust", done: false };
+  doc.cards.ids.push(newItem.id);
+  doc.cards.entities[newItem.id] = newItem;
+});
+```
+
+Even though you are using mutating APIs, Automerge ensures that the code above does not actually
+mutate `state`, but returns a new copy of `state` in which the changes are reflected. The problem
+with the first example is that from Automerge's point of view, you are replacing the entire
+`doc.cards` object (and everything inside it) with a brand new object. Thus, if two users
+concurrently update the document, Automerge will not be able to merge those changes (instead, you
+will just get a conflict on the `doc.cards` property).
+
+You can avoid this problem by making the changes at a fine-grained level: adding one
+item to the array of IDs with `ids.push(newItem.id)`, and adding one item to the map of entities
+with `entities[newItem.id] = newItem`. This code works much better, since it tells Automerge
+exactly which changes you are making to the state, and this information allows Automerge to deal
+much better with concurrent updates by different users.
+
+As a general principle with Automerge, you should make state updates at the most fine-grained
+level possible. Don't replace an entire object if you're only modifying one property of that
+object; just assign that one property instead.
+
+---
+
+## Rich Text
+
+# Rich Text
+
+As well as [supporting](../text) plain text Automerge supports rich text editing. The rich text APIs are extensions of the plain text API. In addition to using `splice` and `updateText` to modify a string, we also provide functions to manipulate two extra data types which are associated with a string:
+
+* Marks: formatting spans which apply to a range of characters and can overlap
+* Block markers which divide the text into blocks
+
+## Marks
+
+Marks represent things like bold or italic text, or inline elements such as hyperlinks. Every mark has a name - such as "bold" - and a value, which must be a primitive value such as a boolean or string. 
+
+When you create a mark you must decide how that mark will behave when characters are inserted at its boundaries. For example, bold marks typically expand when characters are inserted at the boundaries whilst a hyperlink normally wouldn't.
+
+To create a mark, call `Automerge.mark` with the start and end of the range, the name of the mark, the value of the mark, and an `expand` option. You can obtain the set of active marks on a string by calling `Automerge.marks`.
+
+```typescript
+import * as Automerge from "@automerge/automerge"
+
+let doc = Automerge.from({text: "hello world"})
+
+Automerge.change(doc, d => {
+    Automerge.mark(d, ["text"], {start: 0, end: 5, expand: "both"}, "bold", true)
+})
+
+console.log(Automerge.marks(doc, ["text"]))
+
+>> [ { name: 'bold', value: true, start: 0, end: 5 } ]
+```
+
+Here we can see that the bold span applies to the "hello".
+
+It is up to your application to decide what different mark names mean, but if you are interested in interoperability consider adopting our [rich text schema](../../under-the-hood/rich_text_schema).
+
+## Block Markers
+
+Block markers are maps which are inserted inline in the text. They are used to divide text into structural roles such as paragraphs, headings, or code blocks. The underlying primitive of a block marker is very flexible, so specific editor integrations can use it however they like. The `automerge-prosemirror` bindings use the [rich text schema](../../under-the-hood/rich_text_schema).
+
+Block markers can be created using `Automerge.splitBlock` and updated using `Automerge.updateBlock` and you can find the active block at a given index using `Automerge.block`.
+
+## The Spans API
+
+### Reading spans
+
+Frequently working directly with block markers and spans is tedious. You can use `Automerge.spans` to retrieve a sequence of text spans grouped by their marks and interspersed with block markers. For example
+
+```typescript
+import  * as Automerge  from "@automerge/automerge"
+
+let doc = Automerge.from({text: ""})
+
+doc = Automerge.change(doc, d => {
+    // Insert an opening paragraph block
+    Automerge.splitBlock(d, ["text"], 0, {type: "paragraph", parents: []})
+    // Note that the block markers appear inline in the text and so to insert 
+    // _after_ the block marker we need to insert at position 1
+    Automerge.splice(d, ["text"], 1, 0, "Hello")
+    // Insert another paragraph
+    Automerge.splitBlock(d, ["text"], 6, {type: "paragraph", parents: []})
+    Automerge.splice(d, ["text"], 7, 0, "world")
+
+    // Add a mark which covers the end of "hello" and the start of "world"
+    Automerge.mark(d, ["text"], {start: 4, end: 8, expand: "both"}, "bold", true)
+})
+
+console.log(Automerge.spans(doc, ["text"]))
+```
+
+And this outputs:
+
+```javascript
+[
+  { type: 'block', value: { parents: [], type: 'paragraph' } },
+  { type: 'text', value: 'Hel' },
+  { type: 'text', value: 'lo', marks: { bold: true } },
+  { type: 'block', value: { type: 'paragraph', parents: [] } },
+  { type: 'text', value: 'w', marks: { bold: true } },
+  { type: 'text', value: 'orld' }
+]
+```
+
+Here you can see that the text has been broken up into sections with distinct spans and separated by block markers.
+
+### Updating spans
+
+When writing an editor integration it's often difficult to capture exactly what change has been made by the underlying editor you are integrating with. In these cases you can use `Automerge.updateSpans` to update the block structure of the text. This function takes a sequence of spans and block markers - just like that output by `Automege.spans` - and attempts to perform a minimal diff to update the text to the new structure. 
+
+:::warning
+One important note: `Automerge.updateSpans` does not yet update the formatting spans of the text, just the block structure. You will need to separately reconcile the formatting span changes.
+:::
+
+For example, let's say we want to add a new paragraph marker in the string "hello world".
+
+```javascript
+import  * as Automerge  from "@automerge/automerge"
+
+let doc = Automerge.from({text: "hello world"})
+
+doc = Automerge.change(doc, d => {
+    Automerge.updateSpans(d, ["text"], [
+        { type: "text", value: "hello" },
+        { type: "block", value: { type: "paragraph", parents: [] } },
+        { type: "text", value: "world" }
+    ])
+})
+
+console.log(Automerge.spans(doc, ["text"]))
+```
+
+This will output:
+
+```javascript
+[
+  { type: 'text', value: 'hello' },
+  { type: 'block', value: { type: 'paragraph', parents: [] } },
+  { type: 'text', value: 'world' }
+]
+```
+
+`updateSpans` will try and perform minimal updates to block markers and text.
+
+---
+
+## Text
+
+# Text
+
+Automerge provides support for collaborative text editing. Under the hood, whenever you create a `string` in Automerge you are creating a collaborative text object which supports merging concurrent changes to the `string`.
+
+If you want changes to a `string` to be collaborative, you should use `Automerge.splice` to modify the string.
+
+```js
+import  * as Automerge  from "@automerge/automerge"
+
+let doc = Automerge.from({text: "hello world"})
+
+// Fork the doc and make a change
+let forked = Automerge.clone(doc)
+forked = Automerge.change(forked, d => {
+    // Insert ' wonderful' at index 5, don't delete anything
+    Automerge.splice(d, ["text"], 5, 0, " wonderful")
+})
+
+// Make a concurrent change on the original document
+doc = Automerge.change(doc, d => {
+    // Insert at the start, delete 5 characters (the "hello")
+    Automerge.splice(d, ["text"], 0, 5, "Greetings")
+})
+
+// Merge the changes
+doc = Automerge.merge(doc, forked)
+
+console.log(doc.text) // "Greetings wonderful world"
+```
+
+## Using `updateText` when you can't use `splice`
+
+`splice` works in terms of low level input events, sometimes it's hard to get hold of these. For example, in a simple web form the `input` event is fired every time an `input` element changes, but the value of the event is the whole content of the text box. In this case you can use `Automerge.updateText`, which will figure out what has changed for you and convert the changes into `splice` operations internally.
+
+Imagine you have a simple text box:
+
+```html
+
+```
+
+Then with this HTML you can use `updateText` to make the text box collaborative:
+
+```typescript
+
+const handle: DocHandle = ... // some how get a DocHandle
+
+const input = document.getElementById("input")!
+
+input.value = handle.docSync()!.text!
+
+// On every keystroke use `updateText` to update the value of the text field
+input.oninput = (e) => {
+    handle.change((doc) => {
+        // @ts-ignore
+        const newValue: string = e.target.value
+        console.log("newValue", newValue)
+        am.updateText(doc, ["text"], newValue)
+    })
+}
+
+// Any time the document changes, update the value of the text field
+handle.on("change", () => {
+    // @ts-ignore
+    input.value = handle.docSync()!.text!
+})
+```
+
+:::warning
+`updateText` works best when you call it as frequently as possible. If the text has changed a lot between calls to `updateText` (for example if you were calling it in `onchange`) the diff will not merge well with concurrent changes. The best case is to call it after every keystroke.
+:::
+
+---
+
+## Simple Values
+
+# Simple Values
+
+All JSON primitive datatypes are supported in an Automerge document. In addition, JavaScript [Date objects](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date) are supported.
+
+_Remember, never modify `currentDoc` directly, only ever change `doc` inside the callback to `Automerge.change`!_
+
+```js
+newDoc = Automerge.change(currentDoc, (doc) => {
+  doc.property = "value"; // assigns a string value to a property
+  doc["property"] = "value"; // equivalent to the previous line
+  delete doc["property"]; // removes a property
+
+  doc.stringValue = "value";
+  doc.numberValue = 1;
+  doc.boolValue = true;
+  doc.nullValue = null;
+  doc.nestedObject = {}; // creates a nested object
+  doc.nestedObject.property = "value";
+  // you can also assign an object that already has some properties
+  doc.otherObject = { key: "value", number: 42 };
+
+  // By default, strings are collaborative sequences of characters. There are
+  // cases where you want a string which is not collaborative - URLs for example
+  // should generally be updated in one go. In this case you can use `ImmutableString`,
+  // which does not allow concurrent updates.
+  doc.atomicStringValue = new Automerge.ImmutableString("")
+});
+```
+
+---
+
+## `DocHandle`s
+
+# `DocHandle`s
+
+Once you have a `Repo` with a `NetworkAdapter` and a `StorageAdapter` you can get down to the business of creating and working with [`DocHandle`](https://automerge.org/automerge-repo/classes/_automerge_automerge_repo.DocHandle.html)s.
+
+It's useful to understand a little about why we need a `DocHandle`. `@automerge/automerge` documents are fairly inert data structures. You can create a document, you can mutate it, you can generate sync messages to send elsewhere and you can receive sync messages from elsewhere. None of this is very "live" though. Because the document has no concept of a network, or of storage, you can't say "every time I change a document, tell everyone else about it and save the change to storage". This "live document" is what a `DocHandle` is. A `DocHandle` is a wrapper around a document managed by a `Repo`. It provides the following kinds of "liveness":
+
+- Whenever you change the document using [`DocHandle.change`](https://automerge.org/automerge-repo/classes/_automerge_automerge_repo.DocHandle.html#change) or [`DocHandle.changeAt`](https://automerge.org/automerge-repo/classes/_automerge_automerge_repo.DocHandle.html#changeAt) the changes will be saved to the attached `StorageAdapter` and sent to any connected `NetworkAdapter`s
+- Whenever a change is received from a connected peer the `DocHandle` will fire a "change" event
+- There is a concept of an ephemeral message, which you can send using `DocHandle.broadcast`. Whenever a `DocHandle` receives an ephemeral message it will fire a `"ephemeral-message"` event
+- You can wait for a `DocHandle` to be loaded, or to be retrieved from another peer
+- `DocHandle`s have a `URL`, which can be used to uniquely refer to the document it wraps when requesting it from another peer
+
+`DocHandle`s are very useful, how do you obtain one?
+
+## Creating a `DocHandle`
+
+This is the easy one, just call [`Repo.create`](https://automerge.org/automerge-repo/classes/_automerge_automerge_repo.Repo.html#create). This creates a new document, stores it, and then enqueues messages to all connected peers informing them of the new document.
+
+## Waiting for a `DocHandle`
+
+Typically you are _not_ creating a new document, but working with an existing one. Maybe the document URL was stored in `localStorage`, maybe the URL was in the hash fragment of the browser, etc. In this case you use [`Repo.find`](https://automerge.org/automerge-repo/classes/_automerge_automerge_repo.Repo.html#find) to lookup the document. This means the `DocHandle` can be in several different states, to understand this we'll first look at the states in detail, then some convenience methods `DocHandle` exposes for waiting for different states.
+
+### `DocHandle` states
+
+`Repo.find` will do two things simultaneously:
+
+- Look in the attached `StorageAdapter` to see if we have any data for the document
+- Send a request to any connected peers to ask if they have the document
+
+These actions are asynchronous, as they complete the state of the document changes. This state is represented most explicitly in the [`HandleState`](https://automerge.org/automerge-repo/enums/_automerge_automerge_repo.HandleState.html) enum, which has the following states:
+
+- `IDLE` - This is really just a start state, every dochandle immediately transitions to another state
+- `AWAITING_NETWORK` - in this state we are waiting for the `NetworkAdapter`s to be ready to process messages. This typically occurs at application startup. Most `NetworkAdapter`s have an asynchronous startup period. The `Repo` waits until every `NetworkAdapter` has emitted a `ready` event before beginning to request documents
+- `LOADING` - we are waiting for storage to finish trying to load this document
+- `REQUESTING` - we are waiting to hear back from other peers about this document
+- `READY` - The document is available, either we created it, found it in storage, or someone sent it to us
+- `DELETED` - The document was removed from the repo
+- `UNAVAILABLE` - We don't have the document in storage and none of our peers have the document either
+
+The transitions between these states look like this:
+
+```mermaid
+stateDiagram-V2
+    direction LR
+    [*] --> LOADING: Repo.find
+    [*] --> READY: Repo.create
+    LOADING --> AWAITING_NETWORK
+    AWAITING_NETWORK --> REQUESTING: network ready
+    AWAITING_NETWORK --> DELETED
+    LOADING --> READY: found in storage
+    LOADING --> REQUESTING: not found in storage
+    LOADING --> UNAVAILABLE: no peers had the doc
+    LOADING --> DELETED
+    UNAVAILABLE --> READY: Received sync for this doc
+    UNAVAILABLE --> DELETED
+    REQUESTING --> READY: Received sync for this doc
+    READY --> DELETED
+```
+
+Note that every state can transition to `DELETED`, either via `DocHandle.delete` or `Repo.delete`.
+
+One other point to note is that a `DocHandle` can be unavailable because we didn't have it in storage and no peers responded to our request for it, but then another peer comes online and sends us sync messages for the document and so it transitions to `READY`.
+
+You can check what state a handle is in using [`DocHandle.inState`](https://automerge.org/automerge-repo/classes/_automerge_automerge_repo.DocHandle.html#inState).
+
+### Waiting for a handle to be ready
+
+If all we care about is whether the document is ready then we can use a few different methods.
+
+- `DocHandle.isReady()` is a synchronous method which will return `true` if the document is ready
+- `DocHandle.whenReady()` is an asynchronous method that will return when the handle is ready
+- `DocHandle.doc()` is an asynchronous method which will return the value of the document when it is ready
+- `DocHandle.docSync()` is a synchronous method which returns the value of the document if it is ready. This method _will throw if the handle is not ready_. Therefore you should guard calls to `docSync` with calls to `isReady`
+
+Once the document is ready the value of the document (either `DocHandle.doc()` or `DocHandle.docSync()`) will be `undefined` if the document was unavailable, but otherwise will be an automerge document.
+
+---
+
+## Ephemeral Data
+
+# Ephemeral Data
+
+Automerge encourages you to persist most of your application state. Sometimes however there is state which it doesn't make any sense to persist. Good reasons to not persist state are if it changes extremely fast, or is only useful to the user in the context of a live "session" of some kind. One example of such data is cursor positions in collaboratively edited text. We refer to this kind of data as "ephemeral data".
+
+Ephemeral data is associated with a particular document, which means you need to obtain a `DocHandle` for the document in question in order to send and receive ephemeral data. The rationale for this is that most of the time ephemeral data is related to a particular document. However, if you need to exchange ephemeral data which has no associated document you can always create a blank document and use that.
+
+## Sending
+
+```typescript
+const handle = Repo.find("");
+handle.broadcast({
+  some: "message",
+});
+```
+
+The object passed to `broadcast` will be CBOR encoded so you can send whatever you like.
+
+## Receiving
+
+To receive you listen to the `"ephemeral-message"` event on the `DocHandle`
+
+```typescript
+const handle = Repo.find("")
+handle.on("ephemeral-message", (message: any) => {
+    console.log("got an ephemeral message: ", message)
+})
+```
+
+The received message will be decoded from CBOR before handing it to the event handler.
+
+---
+
+## Repositories
+
+# Repositories
+
+`@automerge/automerge` provides a JSON-like CRDT and a sync protocol, but this still leaves a lot of plumbing to do to use it in an application. [`@automerge/automerge-repo`](https://www.npmjs.com/package/@automerge/automerge-repo) is that plumbing.
+
+The entry point for an `automerge-repo` based application is to create a [`Repo`](https://automerge.org/automerge-repo/classes/_automerge_automerge_repo.Repo.html), passing it some form of [`StorageAdapter`](https://automerge.org/automerge-repo/classes/_automerge_automerge_repo.StorageAdapter.html) - which knows how to save data locally - and zero or more [`NetworkAdapter`](https://automerge.org/automerge-repo/classes/_automerge_automerge_repo.NetworkAdapter.html)s, which know how to talk to other peers running `automerge-repo`.
+
+For example, this snippet creates a `Repo` which listens for websocket connections and stores data in the local file system:
+
+```typescript
+import { Repo } from "@automerge/automerge-repo";
+import { WebSocketServer } from "ws";
+import { NodeWSServerAdapter } from "@automerge/automerge-repo-network-websocket";
+import { NodeFSStorageAdapter } from "@automerge/automerge-repo-storage-nodefs";
+
+const wss = new WebSocketServer({ noServer: true });
+
+const repo = new Repo({
+  network: [new NodeWSServerAdapter(wss)],
+  storage: new NodeFSStorageAdapter(dir),
+});
+```
+
+A `Repo` is a little like a database. It allows you to create and request [`DocHandle`](https://automerge.org/automerge-repo/classes/_automerge_automerge_repo.DocHandle.html)s. Once you have a `DocHandle` you can make changes to it and listen for changes received from other peers.
+
+```typescript
+let doc = repo.create();
+// Make a change ourselves and send that to everyone else
+doc.change((d) => (d.text = "hello world"));
+// Listen for changes from other peers
+doc.on("change", ({ doc }) => {
+  console.log("new text is ", doc.text);
+});
+```
+
+Any changes you make - or which are received from the network - will be stored in the attached storage adapter and distributed to other peers
+
+---
+
+## Networking
+
+# Networking
+
+There are many ways to talk to other peers. In `automerge-repo` this is captured by the [`NetworkAdapter`](https://automerge.org/automerge-repo/classes/_automerge_automerge_repo.NetworkAdapter.html) interface. Unlike `StorageAdapter`s a repository can have many (or zero) `NetworkAdapter`s.
+
+"network" is quite a broad term in `automerge-repo`. It really means "any other instance of `Repo` which I am communicating with by message passing". This means that as well as network adapters for obvious things like websockets, we also implement network adapters for less traditional channels such as [`MessageChannel`](https://developer.mozilla.org/en-US/docs/Web/API/MessageChannel) or [`BroadcastChannel`](https://developer.mozilla.org/en-US/docs/Web/API/BroadcastChannel).
+
+## Websockets
+
+The websocket `NetworkAdapter` has two parts. This is because the websocket protocol requires a server and a client. The parts are named `NodeWSServerAdapter` and `BrowserWebsocketClientAdapter`, but don't take these names too seriously, they will both work in a browser or in Node.
+
+### Server
+
+The server side of the adapter is [`NodeWSServerAdapter`](https://automerge.org/automerge-repo/classes/_automerge_automerge_repo_network_websocket.NodeWSServerAdapter.html), which should be used in combination with the [`ws`](https://www.npmjs.com/package/ws) library.
+
+```typescript
+import { WebSocketServer } from "ws";
+import { NodeWSServerAdapter } from "@automerge/automerge-repo-network-websocket";
+
+const wss = new WebSocketServer({ port: 8080 });
+const adapter = new NodeWSServerAdapter(wss);
+```
+
+#### Usage with `express`
+
+Often you aren't running the websocket server as a standalone thing but instead as part of an existing HTTP server. Here's an example of such a situation in an `express` app.
+
+```typescript
+import { WebSocketServer } from "ws";
+import { NodeWSServerAdapter } from "@automerge/automerge-repo-network-websocket";
+import express from "express";
+
+const wss = new WebSocketServer({ noServer: true });
+const server = express();
+server.on("upgrade", (request, socket, head) => {
+  wss.handleUpgrade(request, socket, head, (socket) => {
+    wss.emit("connection", socket, request);
+  });
+});
+const adapter = new NodeWSServerAdapter(wss);
+server.listen(8080);
+```
+
+### Client
+
+The client side of the connection is [`BrowserWebsocketClientAdapter`](https://automerge.org/automerge-repo/classes/_automerge_automerge_repo_network_websocket.BrowserWebSocketClientAdapter.html).
+
+```typescript
+import { BrowserWebSocketClientAdapter } from "@automerge/automerge-repo-network-websocket";
+
+const network = new BrowserWebSocketClientAdapter("ws://localhost:3030");
+```
+
+## MessageChannel
+
+[`@automerge/automerge-repo-network-messagechannel`](https://automerge.org/automerge-repo/modules/_automerge_automerge_repo_network_messagechannel.html) is a `NetworkAdapter` for communicating between processes within the same browser using a [`MessageChannel`](https://developer.mozilla.org/en-US/docs/Web/API/MessageChannel).
+
+```typescript
+import { MessageChannelNetworkAdapter } from "@automerge/automerge-repo-network-messagechannel";
+import { Repo } from "@automerge/automerge-repo";
+
+const { port1: leftToRight, port2: rightToLeft } = new MessageChannel();
+const rightToLeft = new MessageChannelNetworkAdapter(rightToLeft);
+const leftToRight = new MessageChannelNetworkAdapter(leftToRight);
+
+const left = new Repo({
+  network: [leftToRight],
+});
+const right = new Repo({
+  network: [rightToLeft],
+});
+```
+
+## BroadcastChannel
+
+[`@automerge/automerge-repo-network-broadcastchannel`](https://automerge.org/automerge-repo/modules/_automerge_automerge_repo_network_broadcastchannel.html) is a `NetworkAdapter` for communicating between processes in the same browser using a [`BroadcastChannel`](https://developer.mozilla.org/en-US/docs/Web/API/BroadcastChannel). This will in general be quite inefficient because the sync protocol is point-to-point so even though `BroadcastChannel` is a _broadcast_ channel, we still have to duplicate each message for every peer in the channel. It's better to use `MessageChannel` if you can, but `BroadcastChannel` is good in a pinch.
+
+```typescript
+import { BroadcastChannelNetworkAdapter } from "@automerge/automerge-repo-network-broadcastchannel";
+
+const network = new BroadcastChannelNetworkAdapter();
+```
+
+---
+
+## Storage
+
+# Storage
+
+In `automerge-repo` "storage" refers to any implementation of [`StorageAdapter`](https://automerge.org/automerge-repo/classes/_automerge_automerge_repo.StorageAdapter.html). You _can_ run a `Repo` without a `StorageAdapter` but it will be entirely transient and will have to load all its data from remote peers on every restart.
+
+`StorageAdapter` is designed to be safe to use concurrently, that is to say it is safe to have multiple `Repo`s talking to the same storage.
+
+There are two built in storage adapters:
+
+## IndexedDB
+
+[`@automerge/automerge-repo-storage-indexeddb`](https://www.npmjs.com/package/@automerge/automerge-repo-storage-indexeddb) stores data in an [`IndexedDB`](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API) in the browser.
+
+```typescript
+import { IndexedDBStorageAdapter } from "@automerge/automerge-repo-storage-indexeddb"
+
+const storage = new IndexedDBStorageAdapter()
+```
+
+You can customize the object database and object store the storage uses, see [the docs](https://automerge.org/automerge-repo/classes/_automerge_automerge_repo_storage_indexeddb.IndexedDBStorageAdapter.html#constructor)
+
+As noted above, this is safe for concurrent use so you can have multiple tabs pointing at the same storage. Note that they will not live update (you may want to use a [`MessageChannel`](https://automerge.org/automerge-repo/modules/_automerge_automerge_repo_network_messagechannel.html) or [`BroadcastChannel`](https://automerge.org/automerge-repo/modules/_automerge_automerge_repo_network_broadcastchannel.html) based `NetworkAdapter` for that) but on refresh the concurrent changes will be merged as per the normal merge rules.
+
+## File system
+
+[`@automerge/automerge-repo-storage-nodefs`](https://www.npmjs.com/package/@automerge/automerge-repo-storage-nodefs) is a `StorageAdapter` which stores its data in a directory on the local filesystem. The location can be customized as per [the docs](https://automerge.org/automerge-repo/classes/_automerge_automerge_repo_storage_nodefs.NodeFSStorageAdapter.html#constructor)
+
+```typescript
+import { NodeFSStorageAdapter } from "@automerge/automerge-repo-storage-nodefs";
+const storage = new NodeFSStorageAdapter();
+```
+
+As with the `IndexedDB` adapter this adapter is safe for multiple processes to use the same data directory.
+
+## Roll your own
+
+`StorageAdapter` is designed to be easy to implement. It should be straightforward to build on top of any key/value store which supports range queries.
+
+---
+
+## Merge Rules
+
+# Merge Rules
+
+:::info
+
+It isn't important to understand this section to use automerge. You can just let automerge handle merging for you. But it may be interesting to understand.
+
+:::
+
+How does automerge merge concurent changes? Well, let's think about what kinds of concurrent changes are possible. Automerge documents always carry their history with them, so the way to think about two concurrent versions of a document is as the set of changes since some common ancestor.
+
+```mermaid
+graph LR
+    A --> B
+    B --> C
+    C --> D
+    D --> E
+    C --> F
+    F --> G
+```
+
+Here the common ancestor is `C` and the concurrent changes are `(D,E)` and `(F,G)`.
+
+Automerge documents are composed of nested maps and lists or simple values or text sequences. We can describe the merge rules by describing the rules for maps, lists, text, and counters independently. In each case we describe how to merge two sets of concurrent changes we refer to as `A` and `B`.
+
+## Map merge rules
+
+- If `A` sets key $x$ to a value and `B` sets key $y$ to a value and $x \neq y$ then add both $x$ and $y$ to the merged map
+- If `A` deletes key $x$ and `B` makes no change to $x$ then remove $x$ from the merged map
+- If `A` deletes key $x$ and `B` sets $x$ to a new value then set the value of $x$ to the new value `B` set in the merged map
+- If both `A` and `B` delete key $x$ then delete $x$ from the merged map
+- If both `A` and `B` set the key $x$ to some value then randomly choose one value
+
+Note that "randomly choose" means "choose one arbitrarily, but in such a way that all nodes agree on the chosen value".
+
+## List merge rules
+
+To understand the way lists merge you need to know a little about how the operations on lists are expressed. Every element in a list has an ID and operations on the list reference these IDs. When you update an index in a list (using `list[] = ` in a `change` function in the JS library) the operation which is created references the ID of the element currently at `index`. Likewise when you delete an element from a list the delete operation which is created references the deleted element at the given index. When you _insert_ elements into a list the insert operation references the ID of the element you are inserting after
+
+In the following then when we say "index $x$" that really means "the ID of the element at index $x$ at the time the operation was created".
+
+- If `A` inserts an element after index $i$ and `B` inserts an element after index $i$ then arbitrarily choose one to insert first and then insert the other immediately afterwards
+- If `A` deletes element at index $i$ and `B` updates the element at $i$ then set the value of $i$ to the updated value from `B`
+- If `A` and `B` both delete element $i$ then remove it from the merged list
+
+Note that inserting a run of elements will maintain the insertion order of the replica which generated it. Imagine we have some list `[a, b]` and say `A` inserts the sequence `[d, e]` after `b` whilst `B` inserts `[f, g]` after `b`. Initially the set of operations are:
+
+| Operation ID | Reference element | Value |
+| ------------ | ----------------- | ----- |
+| A            | None              | `a`   |
+| B            | `A`               | `b`   |
+
+The operations after inserting on `A` are
+
+| Operation ID | Reference element | Value |
+| ------------ | ----------------- | ----- |
+| A            | None              | `a`   |
+| B            | `A`               | `b`   |
+| D            | `B`               | `d`   |
+| E            | `D`               | `e`   |
+
+And on `B`
+
+| Operation ID | Reference element | Value |
+| ------------ | ----------------- | ----- |
+| A            | None              | `a`   |
+| B            | `A`               | `b`   |
+| F            | `B`               | `f`   |
+| G            | `F`               | `g`   |
+
+Here you can see that while both `F` and `D` insert after the same reference element (`B`) the following operations reference the element that was just inserted on the local replica. That is, automerge must arbitrarily choose one of either `F` or `D` to be inserted after `B`, but after that the operations stay in the same order as they were inserted on each node. Let's say that `A` is chosen, then the final order of operations will be
+
+| Operation ID | Reference element | Value |
+| ------------ | ----------------- | ----- |
+| A            | None              | `a`   |
+| B            | `A`               | `b`   |
+| D            | `B`               | `d`   |
+| E            | `D`               | `e`   |
+| F            | `B`               | `f`   |
+| G            | `F`               | `g`   |
+
+There are cases where this algorithm does not preserve insertion order - primarily when inserting elements in reverse - but most of the time it does a good job.
+
+## Text merge rules
+
+The characters of a text object are merged using the same logic as lists. For a description of the merge rules for marks see [Peritext](https://www.inkandswitch.com/peritext/)
+
+## Counter merge rules
+
+Counters are very simple, we just sum all the individual operations from each node.
+
+---
+
+## Rich Text Schema
+
+# Rich Text Schema
+
+The [rich text](../../documents/rich_text) API provides a set of primitives for annotating a sequence of characters with formatting information. The two primitives in question are
+
+* Marks - formatting spans which apply to a range of characters and can overlap
+* Block markers which divide the text into blocks
+
+These primitives are flexible enough that there are a wide variety of ways to build an editor on top of them. This page documents the (extremely minimal) schema we use in the `automerge-prosemirror` bindings and which we hope is general and useful enough that other editor bindings could adopt it. This is a work in progress and we hope others will build on and contribute to it.
+
+The requirements we have for this schema are:
+
+1. The ability to represent inline text decoration such as bold spans, as well as semantic information like hyperlinks or code spans
+2. A way of representing hierarchical structure which merges well - or, alternatively, which results in patches which are commensurate in size with the editing action the user took (inserting a paragraph is a single user action, we would like it to not result in a large patch which is hard to interpret)
+3. A way for applications to extend the schema with their own specific mark and block types in such a way that there is still some degree of interoperability between applications
+
+## Marks
+
+We define the following marks
+
+* `"strong"` - represents a span of bolded text, has value `true` if present
+* `"em"` - represents a span of italicized text, has value `true` if present
+* `"link"` - represents a span of text which links to a URL. The value is a string  representing the JSON serialization of the following object
+
+    ```json
+    {
+        "href": "",
+        "title": ""
+    }
+    ```
+
+Any other mark names are application specific and should be prefixed by a probably unique string that begins `"__ext__"`. If an editor integration encounters a mark it does not recognise, the mark should be round tripped through the editor - I.e. if the users makes some change to the document via the editor integration, the mark should be left untouched.
+
+## Block Markers
+
+Blocks represent the hierarchical structure of the document. A block has the following type:
+
+```typescript
+{
+    type: string,
+    parents: string[],
+    attrs: Record,
+    isEmbed: boolean,
+}
+```
+
+All text following a block marker until the next block marker or the end of the document belongs to the block marker - except in the case of an `isEmbed: true` block, which will be described shortly.
+
+The `type` of the block determines how the block is rendered. We define the following block types:
+
+* `"paragraph"` - a block of text
+* `"heading"` a heading. The `attrs` object should contain a `level` key which is a number from 1 to 6
+* `"code-block"` - a block of code. The `attrs` object **MAY** have a `language: string` key which hints at what language the block contains
+* `"blockquote"` - a block of quoted text
+* `"ordered-list-item"` - An item in an ordered list (i.e. a numbered list)
+* `"unordered-list-item"` - An item in an unordered list (i.e. a bulleted list)
+* `"image"` - An image. The `attrs` object should contain the following keys:
+
+    ```typescript
+    {
+        src: string // the URL of the image,
+        alt: string | null // the alt text describing the content of the image,
+        title: string | null// the title of the image,
+    }
+    ```
+    An image block **SHOULD** have `isEmbed: true`
+
+Any other block types are application specific and should be prefixed by a probably unique string that begins `"__ext__"`. If an editor integration encounters a block type it does not recognise the block should be rendered as a generic block element. Unrecognised attributes should be round tripped through the editor.
+
+### `parents` - representing hierarchical structure
+
+The `parents` array of a block represents the blocks which it appears inside. For example, a block like this:
+
+```
+{
+    type: "paragraph",
+    parents: ["blockquote"]
+    attrs: {},
+    isEmbed: false
+}
+```
+
+Represents a paragraph which is inside a blockquote. We call the `path` of a block marker the array `[...parents, type]`. The children of some block `a` are all the blocks following that marker for which the path of `a` is a proper prefix of the child block's path. Note that because a blocks contents are always after it and before it's next sibling, paths don't need to be unique - they only need to provide enough information to clearly match where in the hierarchy a block sits.
+
+:::info
+
+Sometimes a block will reference a parent that doesn't exist in the list. When that happens - that parent is implicitly created with the defaults expected for it's block type. This ensures you can't accidentally remove a block's container by deleting the containing block or one of the block's siblings, since each block contains a minimal copy of the hierarchy needed to properly place it.
+:::
+
+For example, the following sequence of block marks:
+
+```
+{ parents: ["blockquote"], type: "paragraph" }
+{ parents: ["blockquote", "ordered-list-item"], type: "paragraph" }
+{ parents: [], type: "paragraph" }
+```
+
+Will result in the following hierarchy:
+
+```
+blockquote:
+  - paragraph
+  - ordered-list-item:
+      - paragraph
+paragraph
+```
+
+Note that the "blockquote" and "ordered-list-item" blocks are generated because they are parent's of the first two paragraphs, even though they aren't explicitly listed.
+
+### Embeds
+
+Blocks with `isEmbed: true` are blocks which are not part of the flow of text and represent some non-textual content such as an image. Embed block markers should _not_ break up the flow of text. I.e. the text following an `isEmbed: true` block marker belongs to the first non embed block preceding the embed block marker.
+
+If an application encounters an unknown embed block it should render the block using some sort of generic UI and round trip the block through the editor. The editor **SHOULD** allow the user to delete the embedded block marker in some manner.
+
+## Putting It All Together
+
+When retrieving the current value of a rich text document via the [Spans API](../../documents/rich_text#the-spans-api), you will get an array of Spans with the following structure:
+
+```typescript
+{
+    type: "block",
+    value: {
+        type: string,
+        parents: string[],
+        attrs: Record,
+        isEmbed: boolean,
+    }
+} |
+{
+    type: "text",
+    value: string,
+    marks?: {
+        [markName: string]: boolean | string | number // remember that marks are primitive values, and are not merged.
+    }
+}
+```
+
+For example, I could take the following rich text document:
+```typescript
+[
+    {
+        type: "text", value: "From the automerge docs:"
+    },
+    {
+        type: "block",
+        value: { parents: ["blockquote"], type: "paragraph" },
+    },
+    { type: "text", value:  "The requirements we have for this schema are:" },
+    {
+        type: "block",
+        value: { parents: ["blockquote", "ordered-list"], type: "paragraph"},
+    },
+    {type: "text": value: "The ability to represent inline text decoration such as bold spans, as well as semantic information like hyperlinks or code spans"},
+    {
+        type: "block",
+        value: { parents: ["blockquote", "ordered-list"], type: "paragraph"},
+    },
+    {type: "text": value: "A way of representing hierarchical structure which merges well - or, alternatively, which results in patches which are commensurate in size with the editing action the user took (inserting a paragraph is a single user action, we would like it to not result in a large patch which is hard to interpret)"},
+    { type: "block", value: {parents: ["blockquote"], type: "paragraph"}},
+    {type: "text", value: "..."}
+    { type: "block", value: { parents: [], type: "paragraph"}},
+    {
+        type: "text", value: "From: ", marks: { strong: true }
+    },
+    {
+        type: "text", value: "Rich Text Schema", marks: { link: '{"href": "/", title: ""}', em: true}
+    }
+]
+```
+
+Which I could render like so:
+
+> From the automerge docs
+>
+> > The requirements we have for this schema are:
+> >
+> > 1. The ability to represent inline text decoration such as bold spans, as well as semantic information like hyperlinks or code spans
+> > 2. A way of representing hierarchical structure which merges well - or, alternatively, which results in patches which are commensurate in size with the editing action the user took (inserting a paragraph is a single user action, we would like it to not result in a large patch which is hard to interpret)
+> > ...
+>
+> **From:** _[Rich Text Schema](/)_
+
+---
+
+## Storage
+
+# Storage
+
+In the [tutorial](../../../tutorial) section we introduced a simple task list which synchronizes a todo list between any number of tabs. If you close all the tabs and open a new one you will see that the value of the todo list is persisted. How is this working? What's going on?
+
+Before we dive into that, try this experiment. Modify the definition of the `repo` in `main.tsx` to look like this:
+
+```typescript
+const repo = new Repo({
+  network: [], // This part means that we're not sending live changes anywhere
+  storage: new IndexedDBStorageAdapter(),
+});
+```
+
+Now if you open two tabs with the same URL you'll notice that the task list is not updated live between tabs. However, if you modify the todo list in both tabs and then refresh either tab the todo list will include the edits from the other tab.
+
+Clearly there is more going on here than just saving the current state of the document somewhere.
+
+## Under the hood
+
+Both tabs initialize a `Repo` pointing at an IndexedDB storage adapter, because the tabs are on the same domain this means they have access to the same storage.
+
+Let's mess around with this in the browser. First, clear your local IndexedDB for the `localhost` domain, then open `http://localhost:5173` (without a hash component). The browser will update to contain a hash component with the document ID in it. In this example the URL in the browser window is `http://localhost:5173/#automerge:3RFyJzsLsZ7MsbG98rcuZ4FqtGW7`, so the document URL is `automerge:3RFyJzsLsZ7MsbG98rcuZ4FqtGW7`.
+
+Open the browser tools and take a look at IndexedDB you'll see a database called `automerge` and within that an object store called `automerge`. For me, in Firefox, this looks like:
+
+![IndexedDB browser tools](./indexeddb-screenshot.png)
+
+You can see that there is a key which looks roughly like our document URL (it doesn't have the `automerge:` prefix) and some kind of value. If we expand that we see:
+
+![IndexedDB detailed](./indexedb-screenshot-detailed.png)
+
+If you're not familiar with IndexedDB this might be a little confusing. IndexedDB is a sort of key/value store where the keys are arrays. So what we are seeing here is a binary array (the `binary: Object` part in the above screenshot) stored under the key `["3RFyJzsLsZ7MsbG98rcuZ4FqtGW7", "incremental", "0290cdc2dcebc1ecb3115c3635bf1cb0f857ce971d9aab1c44a0d3ab19a88cd8"]`.
+
+Okay, so creating a document (which is what happens when we load the page) stores a binary array under some key in the object database. This binary array is a single "incremental" change. An incremental change is not the entire history of the document but just some set of changes to the document. In this case it's the change that initializes the document with a `"counter"` field.
+
+Now, make some change to the task list and take another look at IndexedDb.
+
+![IndexedDB snapshot](./indexeddb-screenshot-snapshot.png)
+
+Well, there's still one entry, but it's changed. The `[.., "incremental", ..]` key has been deleted and replaced with `[.., "snapshot", ..]`. What's happened here? Every time you make a change automerge-repo saves that change to your storage adapters. Occasionally automerge-repo will decide that it's time to "compact" the document, it will take every change that has been written to storage so far (in this case, every key beginning with `[, .., ..]` and combine them into a single snapshot and then save it as this `[.., "snapshot", ..]` key.
+
+All well and good in one tab. Open a new tab with the same URL (including the hash) and click the count button a few times in both tabs. If you look at the IndexedDB browser tools (in either tab, it's shared between them) you'll something like this:
+
+![IndexedDB many keys](./indexeddb-screenshot-manykeys.png)
+
+You can see here that there are two snapshot files. This is because when each tab compacts incremental changes and then deletes the original incremental files, it only deletes the incremental changes it had previously loaded. This is what makes it safe to use concurrently, because it only deletes data which is incorporated into the compacted document. But the real magic comes with how this is loaded. If you load another tab with the same URL it will sum the counts from both the previous tabs. This works because when the repo starts up it loads all the changes it can find in storage and merges them which it can do because automerge is a CRDT.
+
+## The storage model
+
+The objective of the storage engine in automerge-repo is to be easy to implement over a wide range of backing stores (e.g. an S3 bucket, or a postgres database, or a local directory) and support compaction without requiring any concurrency control on the part of the implementor. Compaction is crucial to make the approach of storing every change that is made to a document feasible.
+
+The simplest model of storage is a key/value model. We could attempt to build storage on top of such a model by using the document ID as a key, appending new changes for a document to that key and occasionally compacting the document and rewriting the value at that key entirely. The problem with this is that it makes it complicated to use the storage engine from multiple processes. Imagine multiple processes are making changes to a document and writing them to the storage backend. If both of these processes decide to compact at the same time then the storage engine would need to have some kind of transaction to ensure that between the time a compacting process read from storage and then wrote to it no other process added new changes to storage. This is not hard for something like a postgres database, but it's very fiddly for simple mediums like a directory on the local filesystem.
+
+What we want to be able to do then is to know that if we are writing a compacted document to storage we will never overwrite data which contains changes we did not compact. Conveniently the set of changes in the document is uniquely identified by the heads of the document. This means that if we use the tuple `(document ID, )` as the key to the storage we know that even if we overwrite data another process has written it must contain the same changes as the data we are writing.
+
+Of course, we also want to remove the un-compacted data. A compacting process can't just delete everything because another process might have written new changes since it started compaction. Each process then needs to keep track of every change it has loaded from storage and then when compacting _only delete those changes_.
+
+The upshot of all this then is that our model for storage is not a key value store with document IDs as keys and byte arrays as values, but instead a slightly more complex model where the keys are arrays of the form `[, , ]` where chunk type is either `"snapshot"` or "`incremental"` and the chunk ID is either the heads of the documnt at compaction time or the hash of the change bytes respectively. The storage backend then must implement range queries so the storage system can do things like "load all the chunks for document ID x".
+
+In typescript that looks like this:
+
+```typescript
+export type StorageKey = string[];
+
+export abstract class StorageAdapter {
+  abstract load(key: StorageKey): Promise;
+  abstract save(key: StorageKey, data: Uint8Array): Promise;
+  abstract remove(key: StorageKey): Promise;
+  abstract loadRange(
+    keyPrefix: StorageKey,
+  ): Promise;
+  abstract removeRange(keyPrefix: StorageKey): Promise;
+}
+```
+
+---
+
+## Migrating from Automerge 2 to Automerge 3
+
+# Migrating from Automerge 2 to Automerge 3
+
+Automerge 3 is a major update to the Automerge library which enormously reduces memory usage and in many cases improves performance. It is however, almost entirely backwards compatible with Automerge 2. The main difference is that we have deprecated the old `Text` based API for collaborative string.
+
+In Automerge 2 we had two APIs for collaborative text. In one API, we represented collaborative text using a class called `Text`, which had methods on it for mutating the string. We eventually deprecated this API and introduced a new API in which collaborative text was represented using a plain `string` and you use methods like `Automerge.splice` and `Automerge.updateText` to modify those strings. Accessing the new API was done by importing the `next` API of Automerge, like so:
+
+```typescript
+import { next as Automerge } from "@automerge/automerge"
+```
+
+In Automerge 3 the old `Text` API is no longer available. All collaborative strings are represented as `string`s. The `next` module is still available (to avoid breaking codebases which use it) but it just re-exports the `Automerge` module.
+
+## Steps to upgrade
+
+If you are not using the old `Text` API (you import Automerge using `import { next as Automerge } from "@automerge/automerge"`), then you can just change your imports to `import * as Automerge from "@automerge/automerge"` and you are done. You don't even _have_ to do this, but we recommend it as the `next` module is now deprecated.
+
+If you _are_ using the old `Text` API then you will need to make the following changes:
+
+* Anywhere your code expects to work with a `Text` class, update it to use a `string`.
+* Anywhere your code expects to work with a `string`, update it to use an `ImmutableString`
+
+### Updating `Text` to `string`
+
+Here's an example. If your old code looks like this:
+
+```typescript
+import * as Automerge from "@automerge/automerge"
+
+let doc = Automerge.from({
+    content: new Automerge.Text()
+})
+
+doc = Automerge.change(doc, d => {
+    d.content.insertAt(0, "Hello ")
+})
+```
+
+You would change it to this:
+
+```typescript
+import * as Automerge from "@automerge/automerge"
+
+let doc = Automerge.from({
+    content: ""
+})
+
+doc = Automerge.change(doc, d => {
+    Automerge.splice(d, ["content"], 0, 0, "Hello")
+})
+```
+
+### Updating `string` to `ImmutableString`
+
+If your old code looks like this:
+
+```typescript
+import * as Automerge from "@automerge/automerge"
+let doc = Automerge.from({
+    content: "Hello world"
+})
+doc = Automerge.change(doc, d => {
+    d.content = "Goodbye world"
+})
+```
+
+You would change it to this:
+
+```typescript
+import * as Automerge from "@automerge/automerge"
+let doc = Automerge.from({
+    content: new Automerge.ImmutableString("Hello world")
+})
+doc = Automerge.change(doc, d => {
+    d.content = new Automerge.ImmutableString("Goodbye world")
+})
+```
