@@ -54,7 +54,7 @@ const config = {
         includeOrder: [
           "**/hello.md",
           "**/tutorial/index.md",
-          "**/tutorial/*.mdx",
+          // "**/tutorial/*.mdx", // can be added once https://github.com/rachfop/docusaurus-plugin-llms/issues/15 is fixed
           "**/cookbook/*.md",
           "**/reference/*.md",
           "**/reference/documents/*.md",
