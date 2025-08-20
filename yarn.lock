@@ -4681,6 +4681,14 @@ dns-packet@^5.2.2:
   dependencies:
     "@leichtgewicht/ip-codec" "^2.0.1"
 
+docusaurus-plugin-llms@^0.1.5:
+  version "0.1.5"
+  resolved "https://registry.yarnpkg.com/docusaurus-plugin-llms/-/docusaurus-plugin-llms-0.1.5.tgz#0d78c9710557859a5aec16d082588983d750f112"
+  integrity sha512-TKcHQG6MyTTleDdOFJL+5OpmW9Le6XGiagClgSX05GXhxD//4PQlY2Iq9HVETLBIsHVETVp8AxjZQ6e3E/fr/Q==
+  dependencies:
+    gray-matter "^4.0.3"
+    minimatch "^9.0.3"
+
 docusaurus-plugin-typedoc@^0.22.0:
   version "0.22.0"
   resolved "https://registry.npmjs.org/docusaurus-plugin-typedoc/-/docusaurus-plugin-typedoc-0.22.0.tgz"

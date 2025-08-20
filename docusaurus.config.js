@@ -11,7 +11,7 @@ const config = {
   title: "Automerge CRDT",
   tagline:
     "Automerge is a library of data structures for building collaborative applications.",
-  url: "https://automerge.github.io",
+  url: "https://automerge.org",
   baseUrl: "/",
   trailingSlash: true,
   onBrokenLinks: "warn",
@@ -46,6 +46,23 @@ const config = {
             to: "/blog/2025/05/13/automerge-repo-2/",
           },
         ],
+      },
+    ],
+    [
+      "docusaurus-plugin-llms",
+      {
+        includeOrder: [
+          "**/hello.md",
+          "**/tutorial/index.md",
+          // "**/tutorial/*.mdx", // can be added once https://github.com/rachfop/docusaurus-plugin-llms/issues/15 is fixed
+          "**/cookbook/*.md",
+          "**/reference/*.md",
+          "**/reference/documents/*.md",
+          "**/reference/repositories/*.md",
+          "**/reference/under-the-hood/*.md",
+          "**/migrating-from-automerge-2-to-automerge-3.md",
+        ],
+        includeUnmatchedLast: false,
       },
     ],
   ],
