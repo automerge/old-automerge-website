@@ -10,15 +10,20 @@ jobs:
   deploy:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v2
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
         with:
-          node-version: "18"
+          version: 10
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: "22"
+          cache: "pnpm"
       - run: "git submodule init && git submodule update"
-      - run: yarn
-      - run: yarn build
-
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
         if: github.ref == 'refs/heads/main'
