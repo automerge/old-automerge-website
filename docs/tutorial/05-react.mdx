@@ -238,16 +238,16 @@ export const TaskList: React.FC<{
     <>
       <button
         type="button"
+        // highlight-start
         onClick={() => {
-          // highlight-start
           changeDoc((d) =>
             d.tasks.unshift({
               title: "",
               done: false,
             }),
           );
-          // highlight-end
         }}
+        // highlight-end
       >
         <b>+</b> New task
       </button>
