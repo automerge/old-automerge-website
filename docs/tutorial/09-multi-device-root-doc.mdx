@@ -115,6 +115,24 @@ export const SyncControls: React.FC<SyncControlsProps> = ({ docUrl }) => {
 };
 ```
 
+Now let's add it to our footer in `src/components/App.tsx`:
+
+```typescript
+      // ..
+      import { useHash } from "react-use";
+      // highlight-next-line
+      import { SyncControls } from "./SyncControls";
+      // ..
+
+      <footer>
+        // highlight-next-line
+        <SyncControls docUrl={docUrl} />
+        <p className="footer-copy">
+          Powered by Automerge + Vite + React + TypeScript
+        </p>
+      </footer>
+```
+
 This component provides buttons to export the current root document ID to the clipboard and to import a new root document ID. When the user clicks "Copy account token", the current document URL is copied to the clipboard. When they click "Import account token", a dialog appears where they can paste a new root document ID. When the root document is pasted we update the stored root document ID and reload the page to reflect the changes.
 
 ### Checking it works
