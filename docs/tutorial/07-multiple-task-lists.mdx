@@ -9,7 +9,7 @@ import Solution from "../components/Solution";
 
 You might have noticed that if you lose the URL of a task list, it's gone forever. This is fine for testing and demos, but obviously no good for a real application.
 
-Automerge is built around the document as a building block for your application, and we use `AutomergeUrl` links to connect those ocuments together. We've already created one kind of document, a task list, and now we're going to build on that foundation by collecting your task lists into something like a folder to keep them organized.
+Automerge is built around the document as a building block for your application, and we use `AutomergeUrl` links to connect those documents together. We've already created one kind of document, a task list, and now we're going to build on that foundation by collecting your task lists into something like a folder to keep them organized.
 
 This is going to give us a chance to see a few patterns in action: linking between documents with URLs, working with multiple documents at once, and using a single document as the "entry point" for your application.
 
@@ -23,7 +23,7 @@ Here's the plan. We are going to:
 3. Store the root document's ID in localStorage in a well-known key to check during startup.
 4. Create a simple UI for copying the root document between browsers, creating rudimentary "accounts".
 
-If this feels different to you from how a traditional database works, that's normal. With Automerge, building an application will eel more like linking together a web of documents than querying a database.
+If this feels different to you from how a traditional database works, that's normal. With Automerge, building an application will feel more like linking together a web of documents than querying a database.
 
 
 ## Create a root document
@@ -31,7 +31,9 @@ If this feels different to you from how a traditional database works, that's nor
 Our root document is going to track all the task lists the user has created or opened. Let's add a type for it in `src/rootDoc.ts`:
 
 ```typescript file="src/rootDoc.ts"
-type RootDocument = {
+import { type AutomergeUrl } from "@automerge/react";
+
+export type RootDocument = {
   taskLists: AutomergeUrl[];
 };
 ```
@@ -87,7 +89,42 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
 );
 ````
 
-Now, we're passing the URL of the root document to the `App` component, but the `App` component is still expecting a `TaskList` document, not a `RootDocument`. Let's fix that, add this code to the `App` component.
+Now, we're passing the URL of the root document to the `App` component, but the `App` component is still expecting a `TaskList` document, not a `RootDocument`. Let's fix that; add this code to the `App` component:
+
+```ts
+// ..
+import { TaskList } from "./TaskList";
+// highlight-start
+import { type AutomergeUrl, useDocument } from "@automerge/react";
+import { RootDocument } from "../rootDoc";
+// highlight-end
+// ..
+
+function App({ docUrl }: { docUrl: AutomergeUrl }) {
+  // highlight-start
+  const [doc] = useDocument<RootDocument>(docUrl, {
+    suspense: true,
+  });
+  // highlight-end
+
+  return (
+    <>
+      <header>
+        <h1>
+          <img src={automergeLogo} alt="Automerge logo" id="automerge-logo" />
+          Automerge Task List
+        </h1>
+      </header>
+
+      <main>
+        <div className="task-list">
+          // highlight-start
+          <TaskList docUrl={doc.taskLists[0]} />
+          // highlight-end
+        </div>
+      </main>
+      // ..
+```
 
 Now, if you open the application the behavior shouldn't change, but you can check the root document in the browser console:
 
@@ -292,7 +329,7 @@ function App({ docUrl }: { docUrl: AutomergeUrl }) {
           // highlight-end
         </div>
         <div className="task-list">
-          // higlight-next-line
+          // highlight-next-line
           {selectedDocUrl ? <TaskList docUrl={selectedDocUrl} /> : null}
         </div>
       </main>
@@ -427,8 +464,10 @@ Then, update the `App` component to use the `useHash` hook:
 
 ```typescript title="src/components/App.tsx"
 // ..
-// highlight-next-line
+// highlight-start
+import { type AutomergeUrl, isValidAutomergeUrl } from "@automerge/react";
 import { useHash } from "react-use";
+// highlight-end
 
 function App({ docUrl }: { docUrl: AutomergeUrl }) {
   // highlight-start
@@ -532,211 +571,3 @@ Now, you should be able to load the application, create a new task list and see 
 ## Next Steps
 
 We're keeping track of our tasks lists in the root document, but every time we refresh we still lose the whole root document. In the next section we'll persist the root document so that it survives page reloads and browser restarts. This will allow us to keep track of all the task lists we've created, even if we close the browser or switch devices.
-
-
-## Keeping Track Of the Root Document
-
-Right now, the only place we store a document URL is in the browser location hash. This won't work for a root document, we need to keep track of the root document URL somewhere persistent. To that end, we're going to store the root document URL in local storage. This root document URL is the only data we will store outside of our `Repo`, everything else will come from Automerge itself.
-
-Let's create a new file `src/rootDoc.ts` to handle the root document management:
-
-<Exercise>
-
-Create the root document management functions:
-
-```typescript file="src/rootDoc.ts"
-import { AutomergeUrl, Repo } from "@automerge/react";
-
-const ROOT_DOC_URL_KEY = "root-doc-url";
-
-export interface DocumentList {
-  documents: AutomergeUrl[];
-}
-
-export const getOrCreateRoot = (repo: Repo): AutomergeUrl => {
-  // Check if we already have a root document
-  const existingUrl = localStorage.getItem(ROOT_DOC_URL_KEY);
-  if (existingUrl) {
-    return existingUrl as AutomergeUrl;
-  }
-
-  // Otherwise create one and (synchronously) store it
-  const root = repo.create({ taskLists: [] });
-  localStorage.setItem(ROOT_DOC_URL_KEY, root.url);
-  return root.url;
-};
-```
-
-</Exercise>
-
-<Solution>
-
-This code:
-
-1. Defines the `RootDocument` interface with a list of document URLs, each of which is a link to a task list
-2. Uses `localStorage` to persist the root document ID
-3. Provides a function to get/create the root document
-
-</Solution>
-
-
-
-## Using the Root Document
-
-Let's update our main app to use the root document:
-
-<Exercise>
-
-Update `src/main.tsx` to initialize the root document:
-
-```typescript
-import React, { Suspense } from "react";
-import ReactDOM from "react-dom/client";
-import App from "./components/App.tsx";
-import "./index.css";
-
-import {
-  Repo,
-  BroadcastChannelNetworkAdapter,
-  WebSocketClientAdapter,
-  IndexedDBStorageAdapter,
-  RepoContext,
-  DocHandle,
-} from "@automerge/react";
-// highlight-next-line
-import { getOrCreateRoot, RootDocument } from "./rootDoc.ts";
-
-const repo = new Repo({
-  network: [
-    new BroadcastChannelNetworkAdapter(),
-    new WebSocketClientAdapter("wss://sync.automerge.org"),
-  ],
-  storage: new IndexedDBStorageAdapter(),
-});
-
-// Add the repo to the global window object so it can be accessed in the browser console
-// This is useful for debugging and testing purposes.
-declare global {
-  interface Window {
-    repo: Repo;
-    // We also add the handle to the global window object for debugging
-    handle: DocHandle<RootDocument>;
-  }
-}
-window.repo = repo;
-
-// highlight-begin
-const rootDocUrl = getOrCreateRoot(repo);
-window.handle = await repo.find(rootDocUrl);
-// highlight-end
-
-ReactDOM.createRoot(document.getElementById("root")!).render(
-  <React.StrictMode>
-    <Suspense fallback={<div>Loading a document...</div>}>
-      <RepoContext.Provider value={repo}>
-        <App docUrl={window.handle.url} />
-      </RepoContext.Provider>
-    </Suspense>
-  </React.StrictMode>,
-);
-```
-
-Note that we no longer pull a document from the location hash, but instead load it out of local storage.
-
-At this point you will get an error when loading the application because the URL we are passing to the `App` component now contains a `RootDocument` rather than the `TaskList` which the `App` component expects. We'll fix that in a moment, but you can still validate that the root doc code is working so far:
-
-1. Open your browser's developer tools (F12 or right-click and select "Inspect")
-2. Go to the "Application" tab
-3. In the left sidebar, under "Storage", click on "Local Storage"
-4. Look for the `root-doc-url` key - it should contain a URL starting with `automerge:`
-5. Then, run this code in the developer console
-
-```js
-const rootDocUrl = localStorage.getItem("root-doc-id")
-const root = window.repo.find(rootUrl);
-console.log("Root document:", root.doc());
-```
-You should see a console log showing the root document with an empty `taskLists` array.
-
-</Exercise>
-
-## Registering Documents
-
-Now that we have our root document set up, let's create a function to register new documents in it. This will be used whenever we create or open a document:
-
-<Exercise>
-
-Add a function to register documents in `src/root.ts`:
-
-```typescript
-export const registerDocument = (
-  repo: Repo,
-  rootId: AutomergeUrl,
-  docId: AutomergeUrl
-) => {
-  const root = repo.find(rootId);
-  root.change((doc: RootDocument) => {
-    if (!doc.documents.includes(docId)) {
-      doc.documents.push(docId);
-    }
-  });
-};
-```
-
-Let's wire this up in our main app. First, create a new file `src/App.tsx`:
-
-```typescript
-import React, { useState } from "react";
-import { useRepo } from "@automerge/automerge-repo-react-hooks";
-import { registerDocument } from "./root";
-
-export const App: React.FC<{
-  rootId: AutomergeUrl;
-}> = ({ rootId }) => {
-  const repo = useRepo();
-  const [selectedDocId, setSelectedDocId] = useState<AutomergeUrl | null>(null);
-
-  const handleCreateDocument = () => {
-    // Create a new task list document
-    const doc = repo.create({ tasks: [] });
-    // Register it in the root document
-    registerDocument(repo, rootId, doc.url);
-    // Select the new document
-    setSelectedDocId(doc.url);
-  };
-
-  return (
-    <div className="app">
-      <div className="sidebar">
-        <button onClick={handleCreateDocument}>New Task List</button>
-      </div>
-      <div className="main">
-        {selectedDocId ? (
-          <div>Selected document: {selectedDocId}</div>
-        ) : (
-          <div>Click "New Task List" to create a document</div>
-        )}
-      </div>
-    </div>
-  );
-};
-```
-
-To test this:
-
-1. Click the "New Task List" button
-2. Open the browser console
-3. Write this code to check the root document:
-
-```typescript
-const root = window.repo.find(localStorage.getItem("root-doc-url"));
-console.log("Root document:", root);
-```
-
-You should see the root document now contains the task list's URL in its `documents` array.
-
-</Exercise>
-
-Now we have the foundation for our document management system. The root document serves as your personal storage space, keeping track of all documents you've opened. This makes it easy to find and access your documents again, even after closing the browser or switching devices.
-
-Next, we're going to start actually using it by recording the documents we open into it.
