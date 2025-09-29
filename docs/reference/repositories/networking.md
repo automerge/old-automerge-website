@@ -63,14 +63,14 @@ import { MessageChannelNetworkAdapter } from "@automerge/automerge-repo-network-
 import { Repo } from "@automerge/automerge-repo";
 
 const { port1: leftToRight, port2: rightToLeft } = new MessageChannel();
-const rightToLeft = new MessageChannelNetworkAdapter(rightToLeft);
-const leftToRight = new MessageChannelNetworkAdapter(leftToRight);
+const rightToLeftAdapter = new MessageChannelNetworkAdapter(rightToLeft);
+const leftToRightAdapter = new MessageChannelNetworkAdapter(leftToRight);
 
 const left = new Repo({
-  network: [leftToRight],
+  network: [leftToRightAdapter],
 });
 const right = new Repo({
-  network: [rightToLeft],
+  network: [rightToLeftAdapter],
 });
 ```
 
