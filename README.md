@@ -1,4 +1,4 @@
-⚠️ This is an archived copy of the old Automerge website repo. The new website repo lives here: [automerge/website](https://github.com/automerge/website)
+⚠️ This is an archived copy of the old Automerge website repo. The new website repo lives here: [automerge/website](https://github.com/automerge/automerge.github.org)
 
 ---
 
